@@ -251,13 +251,56 @@ export async function getOrganisaties(): Promise<Organisatie[]> {
   }));
 }
 
-/** Voor teksten als "328 honden beschikbaar". */
+/** Voor teksten met echte aantallen erin. Nooit met de hand invullen. */
 export async function getAantallen() {
   const honden = await getHonden();
   const organisaties = await getOrganisaties();
+  const landen = new Set(honden.map((hond) => hond.country).filter(Boolean));
+
   return {
     honden: honden.length,
     beschikbaar: honden.filter((hond) => hond.status === "beschikbaar").length,
     organisaties: organisaties.length,
+    landen: landen.size,
   };
+}
+
+/**
+ * De hond voor het verhalenblok op de homepage.
+ *
+ * Bewust geen willekeurige keuze: bij een statische export zou dat bij elke
+ * build een andere hond opleveren, en dan verandert de homepage zonder dat er
+ * iets gebeurd is. We nemen de beschikbare hond met het langste verhaal, want
+ * dat is de hond waar de organisatie de meeste moeite in heeft gestoken.
+ */
+export async function getVerhaalHond(): Promise<Hond | null> {
+  const honden = await getHonden();
+
+  const kandidaten = honden
+    .filter((hond) => hond.status === "beschikbaar" && hond.image && hond.description.length > 300)
+    .sort((a, b) => b.description.length - a.description.length);
+
+  return kandidaten[0] ?? null;
+}
+
+/**
+ * De eerste alinea's van een verhaal, voor een blok waar geen ruimte is voor
+ * het geheel. Kapt af op een hele alinea in plaats van middenin een zin.
+ */
+export function eersteAlineas(omschrijving: string, maxTekens = 520): string[] {
+  const alineas = omschrijving
+    .split(/\n+/)
+    .map((regel) => regel.trim())
+    .filter((regel) => regel.length > 40);
+
+  const gekozen: string[] = [];
+  let totaal = 0;
+
+  for (const alinea of alineas) {
+    if (totaal + alinea.length > maxTekens && gekozen.length > 0) break;
+    gekozen.push(alinea);
+    totaal += alinea.length;
+  }
+
+  return gekozen;
 }

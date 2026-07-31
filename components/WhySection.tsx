@@ -1,7 +1,24 @@
 import { WHY_POINTS } from "@/lib/data";
+import { getAantallen } from "@/lib/honden";
 import Reveal from "./Reveal";
 
-export default function WhySection() {
+export default async function WhySection() {
+  const aantallen = await getAantallen();
+
+  // Cijfers uit de data, nooit met de hand ingevuld. Een bezoeker die doorklikt
+  // moet precies vinden wat hier staat.
+  const CIJFERS: [string, string][] = [
+    [
+      String(aantallen.organisaties),
+      aantallen.organisaties === 1 ? "stichting" : "stichtingen",
+    ],
+    [
+      String(aantallen.landen),
+      aantallen.landen === 1 ? "land van herkomst" : "landen van herkomst",
+    ],
+    [String(aantallen.honden), "honden zoeken een thuis"],
+  ];
+
   return (
     <section id="waarom" className="bg-ink px-4 py-24 text-white sm:px-6 sm:py-32 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
@@ -16,17 +33,13 @@ export default function WhySection() {
             <p className="mt-6 text-lg leading-relaxed text-white/75">
               Wie een rescuehond zoekt, belandt nu in een doolhof van losse
               websites, verouderde pagina&apos;s en Facebook-albums. Wij brengen
-              alle honden van Nederlandse stichtingen samen. Zodat jij je kunt
-              richten op wat telt: de juiste hond vinden.
+              de honden van aangesloten stichtingen samen op een plek. Zodat jij
+              je kunt richten op wat telt: de juiste hond vinden.
             </p>
           </Reveal>
           <Reveal delay={150}>
             <div className="mt-10 flex gap-10">
-              {[
-                ["40+", "stichtingen"],
-                ["5", "landen van herkomst"],
-                ["328", "honden zoeken een thuis"],
-              ].map(([num, label]) => (
+              {CIJFERS.map(([num, label]) => (
                 <div key={label}>
                   <p className="text-4xl font-medium tracking-tight text-gold [font-family:var(--font-display)]">
                     {num}

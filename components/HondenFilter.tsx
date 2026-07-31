@@ -1,8 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Hond } from "@/lib/honden";
 import HondCard from "./HondCard";
+import {
+  ALLE,
+  GESLACHTEN,
+  GROOTTES,
+  LEEFTIJDGROEPEN,
+} from "./SearchFormulier";
 
 /**
  * Filters op het volledige hondenoverzicht.
@@ -11,27 +17,10 @@ import HondCard from "./HondCard";
  * Bij enkele honderden honden is dat direct en heb je er geen server voor
  * nodig. Groeit het naar duizenden, dan is dit het punt om over te stappen op
  * filteren tijdens de build of op een echte zoekindex.
+ *
+ * De begininstelling komt uit de URL, zodat het zoekblok op de homepage hier
+ * naartoe kan sturen en je een gefilterd overzicht kunt delen.
  */
-
-const ALLE = "Alle";
-
-const LEEFTIJDGROEPEN = [
-  { label: "Puppy (tot 1 jaar)", min: 0, max: 11 },
-  { label: "1 tot 3 jaar", min: 12, max: 35 },
-  { label: "3 tot 7 jaar", min: 36, max: 83 },
-  { label: "Senior (7 jaar en ouder)", min: 84, max: 400 },
-];
-
-const GROOTTES = [
-  { waarde: "klein", label: "Klein" },
-  { waarde: "middel", label: "Middel" },
-  { waarde: "groot", label: "Groot" },
-];
-
-const GESLACHTEN = [
-  { waarde: "reu", label: "Reu" },
-  { waarde: "teef", label: "Teef" },
-];
 
 function Keuze({
   label,
@@ -89,6 +78,23 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
   const [grootte, setGrootte] = useState(ALLE);
   const [geslacht, setGeslacht] = useState(ALLE);
 
+  // Keuzes uit de URL overnemen. Bewust in een effect en niet met
+  // useSearchParams: dat laatste vraagt bij een statische export om een
+  // Suspense-grens en levert niets extra's op voor iets dat pas in de browser
+  // hoeft te gebeuren.
+  useEffect(() => {
+    const parameters = new URLSearchParams(window.location.search);
+    const zet = (naam: string, setter: (waarde: string) => void) => {
+      const waarde = parameters.get(naam);
+      if (waarde) setter(waarde);
+    };
+    zet("zoek", setZoek);
+    zet("land", setLand);
+    zet("leeftijd", setLeeftijd);
+    zet("grootte", setGrootte);
+    zet("geslacht", setGeslacht);
+  }, []);
+
   // De landenlijst komt uit de data zelf. Komt er een organisatie uit Spanje
   // bij, dan staat Spanje er automatisch tussen zonder codewijziging.
   const landen = useMemo(() => {
@@ -129,6 +135,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     setLeeftijd(ALLE);
     setGrootte(ALLE);
     setGeslacht(ALLE);
+    window.history.replaceState(null, "", "/honden/");
   }
 
   return (

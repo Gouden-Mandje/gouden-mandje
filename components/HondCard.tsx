@@ -4,8 +4,11 @@ import { ArrowRight } from "./Icons";
 
 /**
  * Eén hondenkaartje. Bewust los van de pagina's, zodat het uitgelichte blok op
- * de homepage en het volledige overzicht er altijd hetzelfde uitzien. Verandert
- * het ontwerp, dan verandert het op één plek.
+ * de homepage en het volledige overzicht er altijd hetzelfde uitzien.
+ *
+ * De naam van de stichting staat er bewust op. Voor de bezoeker is meteen
+ * duidelijk dat de hond niet van ons is, en voor de stichting is het de
+ * zichtbaarheid die ze ervoor terugkrijgen.
  */
 export default function HondCard({ dog }: { dog: Hond }) {
   return (
@@ -24,7 +27,7 @@ export default function HondCard({ dog }: { dog: Hond }) {
           </div>
         )}
         <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3.5 py-1.5 text-[13px] font-semibold text-ink backdrop-blur-md">
-          {dog.flag} {dog.country}
+          {dog.country}
         </span>
         <span
           className={`absolute right-4 top-4 rounded-full px-3.5 py-1.5 text-[13px] font-medium backdrop-blur-md ${
@@ -47,9 +50,10 @@ export default function HondCard({ dog }: { dog: Hond }) {
         <p className="mt-2 min-h-[3rem] flex-1 text-[15px] leading-relaxed text-[#6B5847]">
           {dog.character}
         </p>
+        <p className="mt-4 truncate text-[13px] text-taupe">via {dog.organisation}</p>
         <Link
           href={`/honden/${dog.id}/`}
-          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink px-6 py-3 text-[15px] font-semibold text-ink transition-all duration-300 hover:bg-ink hover:text-white"
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink px-6 py-3 text-[15px] font-semibold text-ink transition-all duration-300 hover:bg-ink hover:text-white"
         >
           Bekijk verhaal
           <ArrowRight />

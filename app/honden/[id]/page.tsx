@@ -130,9 +130,7 @@ export default async function HondPagina({
                   </span>
                 </div>
 
-                <p className="mt-2 text-[15px] text-taupe">
-                  {hond.flag} {hond.country}
-                </p>
+                <p className="mt-2 text-[15px] text-taupe">{hond.country}</p>
 
                 <dl className="mt-6 grid grid-cols-2 gap-3">
                   <Kenmerk label="Leeftijd" waarde={hond.age} />

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Gouden Mandje | Iedere hond verdient een gouden mandje",
+  title: "Gouden Mandje | Elke hond verdient een gouden mandje",
   description:
-    "Ontdek rescuehonden van betrouwbare Nederlandse stichtingen die honden uit het buitenland een tweede kans geven. Alles op een plek, adoptie altijd via de stichting.",
+    "Ontdek rescuehonden van Nederlandse stichtingen die honden uit het buitenland een tweede kans geven. Alles op een plek, adoptie altijd via de stichting.",
   icons: { icon: "/favicon.svg" },
 };
 
