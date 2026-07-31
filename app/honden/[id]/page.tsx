@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Footer from "@/components/Footer";
+import HondGalerij from "@/components/HondGalerij";
 import Nav from "@/components/Nav";
 import { getHond, getHonden } from "@/lib/honden";
 
@@ -79,8 +80,6 @@ export default async function HondPagina({
     .map((regel) => regel.trim())
     .filter(Boolean);
 
-  const overigeFotos = hond.images.slice(1, 9);
-
   return (
     <main>
       <Nav />
@@ -97,33 +96,7 @@ export default async function HondPagina({
           <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-14">
             {/* Foto's en verhaal */}
             <div>
-              <div className="overflow-hidden rounded-[2rem] border border-sand bg-beige">
-                {hond.image ? (
-                  <img
-                    src={hond.image}
-                    alt={`${hond.name}, rescuehond uit ${hond.country}`}
-                    className="aspect-[4/3] w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex aspect-[4/3] w-full items-center justify-center text-6xl text-sand">
-                    🐾
-                  </div>
-                )}
-              </div>
-
-              {overigeFotos.length > 0 && (
-                <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
-                  {overigeFotos.map((foto) => (
-                    <img
-                      key={foto}
-                      src={foto}
-                      alt={`${hond.name}`}
-                      loading="lazy"
-                      className="aspect-square w-full rounded-2xl border border-sand object-cover"
-                    />
-                  ))}
-                </div>
-              )}
+              <HondGalerij fotos={hond.images} naam={hond.name} />
 
               {alinea_s.length > 0 && (
                 <div className="mt-12">
