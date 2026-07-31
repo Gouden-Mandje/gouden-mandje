@@ -74,35 +74,23 @@ export default async function VoorStichtingen() {
             </ul>
           </Blok>
 
-          <Blok titel="Hoe het werkt">
+          <Blok titel="Wat het jullie kost aan werk">
             <p>
-              Jullie hoeven niets in te vullen en niets bij te houden. Ons systeem
-              leest een paar keer per dag de openbare hondenpagina&apos;s van jullie
-              website en werkt onze pagina&apos;s bij.
+              Niets. Jullie hoeven geen account aan te maken, geen honden in te
+              voeren en niets bij te houden. Wij halen de honden van jullie eigen
+              website en houden ze automatisch bij.
             </p>
             <ul className="ml-5 list-disc space-y-2">
-              <li>
-                Wij lezen alleen wat op jullie site openbaar staat. Nooit iets
-                achter een inlog.
-              </li>
-              <li>
-                Wij respecteren <code>robots.txt</code> en houden bewust een rustig
-                tempo aan, zodat jullie site er geen last van heeft.
-              </li>
-              <li>
-                Onze bot is herkenbaar in jullie logs als{" "}
-                <code>GoudenMandjeBot</code>, met een verwijzing naar deze site.
-              </li>
-              <li>
-                Is een hond geadopteerd of van de site gehaald, dan verdwijnt hij
-                bij ons vanzelf. Meestal binnen een dag.
-              </li>
-              <li>
-                Wij tonen jullie foto&apos;s zoals ze op jullie site staan, met
-                vermelding van de stichting en een link naar de oorspronkelijke
-                pagina.
-              </li>
+              <li>Een nieuwe hond op jullie site staat er bij ons meestal binnen een dag ook op.</li>
+              <li>Is een hond geadopteerd of van jullie site gehaald, dan verdwijnt hij bij ons vanzelf.</li>
+              <li>Passen jullie een omschrijving of foto aan, dan gaat dat automatisch mee.</li>
+              <li>Bij elke hond staat jullie naam, met een knop naar jullie eigen pagina.</li>
             </ul>
+            <p>
+              Wij tonen alleen wat al openbaar op jullie website staat. Wil je
+              precies weten hoe wij dat ophalen, vraag het gerust, dan leggen we
+              het uit.
+            </p>
           </Blok>
 
           <Blok titel="En als jullie het niet willen">

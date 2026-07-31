@@ -1,9 +1,17 @@
 import { WHY_POINTS } from "@/lib/data";
-import { getAantallen } from "@/lib/honden";
+import { getAantallen, getHonden } from "@/lib/honden";
 import Reveal from "./Reveal";
 
 export default async function WhySection() {
-  const aantallen = await getAantallen();
+  const [aantallen, honden] = await Promise.all([getAantallen(), getHonden()]);
+
+  // Bewust NIET "landen van herkomst": ons datamodel weet alleen waar een hond
+  // nu is, niet waar hij vandaan komt. Een hond die al in een pleeggezin in
+  // Nederland zit, maakt Nederland nog geen land van herkomst. Hoeveel honden
+  // al hier zijn is bovendien nuttiger voor een adoptant.
+  const inNederland = honden.filter((hond) =>
+    hond.country.toLowerCase().includes("nederland")
+  ).length;
 
   // Cijfers uit de data, nooit met de hand ingevuld. Een bezoeker die doorklikt
   // moet precies vinden wat hier staat.
@@ -12,11 +20,8 @@ export default async function WhySection() {
       String(aantallen.organisaties),
       aantallen.organisaties === 1 ? "stichting" : "stichtingen",
     ],
-    [
-      String(aantallen.landen),
-      aantallen.landen === 1 ? "land van herkomst" : "landen van herkomst",
-    ],
     [String(aantallen.honden), "honden zoeken een thuis"],
+    [String(inNederland), "daarvan al in Nederland"],
   ];
 
   return (
@@ -28,7 +33,7 @@ export default async function WhySection() {
               Waarom Gouden Mandje
             </p>
             <h2 className="text-3xl font-medium leading-tight tracking-tight sm:text-5xl [font-family:var(--font-display)]">
-              Van dertig tabbladen naar een overzicht
+              Van dertig websites naar één overzicht
             </h2>
             <p className="mt-6 text-lg leading-relaxed text-white/75">
               Wie een rescuehond zoekt, belandt nu in een doolhof van losse
