@@ -17,7 +17,7 @@ export default function HondCard({ dog }: { dog: Hond }) {
         {dog.image ? (
           <img
             src={dog.image}
-            alt={`${dog.name}, rescuehond uit ${dog.country}`}
+            alt={`${dog.name}, rescuehond uit ${dog.origin || dog.country}`}
             className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
             loading="lazy"
           />

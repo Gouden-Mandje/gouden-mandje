@@ -32,6 +32,7 @@ type HondBron = {
   grootte: "klein" | "middel" | "groot" | "onbekend";
   ras: string;
   locatie: string;
+  herkomst: string;
   omschrijving: string;
   status: "beschikbaar" | "gereserveerd" | "geadopteerd" | "onbekend";
   aanwezig: "aanwezig" | "verdwenen";
@@ -58,7 +59,6 @@ export type Hond = {
   name: string;
   age: string;
   ageMonths: number | null;
-  country: string;
   flag: string;
   character: string;
   image: string;
@@ -68,6 +68,10 @@ export type Hond = {
   gender: "reu" | "teef" | "onbekend";
   genderLabel: string;
   size: "klein" | "middel" | "groot" | "onbekend";
+  /** Waar de hond verblijft. */
+  country: string;
+  /** Waar de hond vandaan komt. Leeg wanneer de organisatie het niet vermeldt. */
+  origin: string;
   breed: string;
   description: string;
   organisation: string;
@@ -181,6 +185,7 @@ function naarHond(bron: HondBron): Hond {
     age: bron.leeftijd || "Leeftijd onbekend",
     ageMonths: bron.leeftijd_maanden ?? null,
     country: bron.locatie || bron.organisatie,
+    origin: bron.herkomst || "",
     flag: vlagVoor(bron.locatie),
     character: korteOmschrijving(bron.omschrijving),
     image: bron.fotos?.[0] ?? "",

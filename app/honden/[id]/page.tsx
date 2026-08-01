@@ -130,13 +130,18 @@ export default async function HondPagina({
                   </span>
                 </div>
 
-                <p className="mt-2 text-[15px] text-taupe">{hond.country}</p>
+                <p className="mt-2 text-[15px] text-taupe">
+                  {hond.origin && hond.origin !== hond.country
+                    ? `Uit ${hond.origin}, verblijft in ${hond.country}`
+                    : hond.country || hond.origin}
+                </p>
 
                 <dl className="mt-6 grid grid-cols-2 gap-3">
                   <Kenmerk label="Leeftijd" waarde={hond.age} />
                   <Kenmerk label="Geslacht" waarde={hond.genderLabel} />
                   <Kenmerk label="Grootte" waarde={GROOTTE_LABELS[hond.size] ?? "Onbekend"} />
                   {hond.breed && <Kenmerk label="Ras" waarde={hond.breed} />}
+                  {hond.origin && <Kenmerk label="Herkomst" waarde={hond.origin} />}
                 </dl>
 
                 <div className="mt-7 rounded-2xl bg-cream p-5">

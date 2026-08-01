@@ -95,13 +95,22 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     zet("geslacht", setGeslacht);
   }, []);
 
-  // De landenlijst komt uit de data zelf. Komt er een organisatie uit Spanje
-  // bij, dan staat Spanje er automatisch tussen zonder codewijziging.
+  // Het filter gaat over waar de hond VERBLIJFT. Dat is wat een bezoeker wil
+  // weten: kan ik deze hond gaan ontmoeten of zit hij nog in het buitenland.
+  // Nederland staat er dus gewoon tussen als optie.
   const landen = useMemo(() => {
     const uniek = Array.from(new Set(honden.map((hond) => hond.country).filter(Boolean)));
     uniek.sort((a, b) => a.localeCompare(b, "nl"));
     return uniek.map((naam) => ({ waarde: naam, label: naam }));
   }, [honden]);
+
+  // Honden zonder bekende grootte tellen mee bij elke keuze. Niet elke
+  // organisatie vermeldt het, en een hond verbergen die misschien wel past is
+  // vervelender dan er een tonen die het net niet is.
+  const zonderGrootte = useMemo(
+    () => honden.filter((hond) => hond.size === "onbekend").length,
+    [honden]
+  );
 
   const gefilterd = useMemo(() => {
     const zoekterm = zoek.trim().toLowerCase();
@@ -109,7 +118,8 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
 
     return honden.filter((hond) => {
       if (land !== ALLE && hond.country !== land) return false;
-      if (grootte !== ALLE && hond.size !== grootte) return false;
+      // "onbekend" valt nooit weg: zie de toelichting bij zonderGrootte.
+      if (grootte !== ALLE && hond.size !== grootte && hond.size !== "onbekend") return false;
       if (geslacht !== ALLE && hond.gender !== geslacht) return false;
 
       if (groep) {
@@ -155,7 +165,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
         </label>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Keuze label="Land" waarde={land} opties={landen} onWijzig={setLand} />
+          <Keuze label="Verblijft in" waarde={land} opties={landen} onWijzig={setLand} />
           <Keuze
             label="Leeftijd"
             waarde={leeftijd}
@@ -173,6 +183,11 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
             {filtersActief && honden.length !== gefilterd.length
               ? ` van de ${honden.length}`
               : ""}
+            {grootte !== ALLE && zonderGrootte > 0 && (
+              <span className="block text-[13px]">
+                Inclusief honden waarvan de grootte niet vermeld staat.
+              </span>
+            )}
           </p>
           {filtersActief && (
             <button

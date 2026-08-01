@@ -23,7 +23,7 @@ export default async function StorySection() {
           <div className="relative">
             <img
               src={hond.image}
-              alt={`${hond.name}, rescuehond uit ${hond.country}`}
+              alt={`${hond.name}, rescuehond uit ${hond.origin || hond.country}`}
               className="aspect-[4/5] w-full rounded-[2.5rem] object-cover shadow-[0_32px_80px_-24px_rgba(61,46,34,0.3)]"
               loading="lazy"
             />

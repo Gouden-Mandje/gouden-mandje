@@ -1,17 +1,9 @@
 import { WHY_POINTS } from "@/lib/data";
-import { getAantallen, getHonden } from "@/lib/honden";
+import { getAantallen } from "@/lib/honden";
 import Reveal from "./Reveal";
 
 export default async function WhySection() {
-  const [aantallen, honden] = await Promise.all([getAantallen(), getHonden()]);
-
-  // Bewust NIET "landen van herkomst": ons datamodel weet alleen waar een hond
-  // nu is, niet waar hij vandaan komt. Een hond die al in een pleeggezin in
-  // Nederland zit, maakt Nederland nog geen land van herkomst. Hoeveel honden
-  // al hier zijn is bovendien nuttiger voor een adoptant.
-  const inNederland = honden.filter((hond) =>
-    hond.country.toLowerCase().includes("nederland")
-  ).length;
+  const aantallen = await getAantallen();
 
   // Cijfers uit de data, nooit met de hand ingevuld. Een bezoeker die doorklikt
   // moet precies vinden wat hier staat.
@@ -20,8 +12,11 @@ export default async function WhySection() {
       String(aantallen.organisaties),
       aantallen.organisaties === 1 ? "stichting" : "stichtingen",
     ],
+    [
+      String(aantallen.landen),
+      aantallen.landen === 1 ? "land" : "landen",
+    ],
     [String(aantallen.honden), "honden zoeken een thuis"],
-    [String(inNederland), "daarvan al in Nederland"],
   ];
 
   return (

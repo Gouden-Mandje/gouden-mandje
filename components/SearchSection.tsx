@@ -12,9 +12,9 @@ import SearchFormulier from "./SearchFormulier";
 export default async function SearchSection() {
   const [honden, aantallen] = await Promise.all([getHonden(), getAantallen()]);
 
-  const landen = Array.from(new Set(honden.map((hond) => hond.country).filter(Boolean))).sort(
-    (a, b) => a.localeCompare(b, "nl")
-  );
+  const landen = Array.from(
+    new Set(honden.map((hond) => hond.country).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b, "nl"));
 
   return (
     <section className="relative z-10 px-4 sm:px-6 lg:px-8">

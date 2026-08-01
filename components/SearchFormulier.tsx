@@ -111,7 +111,7 @@ export default function SearchFormulier({ landen }: { landen: string[] }) {
     <>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Keuze
-          label="Land"
+          label="Verblijft in"
           waarde={land}
           opties={landen.map((naam) => ({ waarde: naam, label: naam }))}
           onWijzig={setLand}
