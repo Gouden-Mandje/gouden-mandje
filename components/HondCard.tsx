@@ -12,17 +12,29 @@ import { ArrowRight } from "./Icons";
  *
  * Twee uitvoeringen in één component:
  *
- *   Telefoon   foto, naam, leeftijd en land. Meer past niet in een kolom van
- *              zo'n 160 pixels breed: twee labels op de foto gingen over
- *              elkaar heen, de omschrijving liep over acht regels en de knop
- *              brak in tweeën. Het hele kaartje is klikbaar, dus een knop is
- *              hier overbodig.
+ *   Telefoon   foto, naam, leeftijd, land en twee regels van het verhaal. In
+ *              een kolom van zo'n 160 pixels past niet meer: twee labels op de
+ *              foto gingen over elkaar heen en de knop brak in tweeën. Het hele
+ *              kaartje is klikbaar, dus een knop is hier overbodig.
  *
  *   Vanaf sm   het volledige kaartje met omschrijving, stichting en knop.
  *
  * Het hele kaartje is een link. Daarom staat er binnenin geen tweede link:
  * een link in een link is niet toegestaan en geeft onvoorspelbaar gedrag.
  */
+
+/**
+ * Leeftijd inkorten voor het kaartje.
+ *
+ * "5 jaar en 11 maanden" liep op de telefoon over twee regels en maakte de
+ * kaartjes ongelijk hoog. Bij het bladeren gaat het om de orde van grootte;
+ * de precieze leeftijd staat op de hondpagina zelf.
+ */
+function korteLeeftijd(leeftijd: string): string {
+  if (!leeftijd) return "";
+  return leeftijd.split(" en ")[0].trim();
+}
+
 export default function HondCard({ dog }: { dog: Hond }) {
   const gereserveerd = dog.status === "gereserveerd";
 
@@ -72,12 +84,18 @@ export default function HondCard({ dog }: { dog: Hond }) {
 
         {/* Op de telefoon leeftijd en land op één regel onder de naam. Vanaf
             tablet staat het land op de foto en de leeftijd hieronder. */}
-        <p className="mt-1 text-[13px] leading-snug text-taupe sm:hidden">
-          {[dog.age, dog.country].filter(Boolean).join(" · ")}
+        <p className="mt-1 text-[12.5px] leading-snug text-taupe sm:hidden">
+          {[korteLeeftijd(dog.age), dog.country].filter(Boolean).join(" · ")}
         </p>
         <span className="hidden text-sm font-medium text-taupe sm:mt-1 sm:block">
           {dog.age}
         </span>
+
+        {/* Twee regels van het verhaal. Genoeg om een indruk te krijgen,
+            kort genoeg dat de kaartjes even hoog blijven. */}
+        <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-snug text-[#6B5847] sm:hidden">
+          {dog.character}
+        </p>
 
         <p className="mt-2 hidden min-h-[3rem] flex-1 text-[15px] leading-relaxed text-[#6B5847] sm:block">
           {dog.character}
