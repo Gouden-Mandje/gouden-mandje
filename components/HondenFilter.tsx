@@ -20,7 +20,14 @@ import {
  *
  * De begininstelling komt uit de URL, zodat het zoekblok op de homepage hier
  * naartoe kan sturen en je een gefilterd overzicht kunt delen.
+ *
+ * Niet alles staat meteen op het scherm. Met bijna duizend honden werd de
+ * pagina op een telefoon onwerkbaar: je moest tientallen keren vegen voordat je
+ * ergens was. Daarom tonen we een deel en laden we bij op verzoek.
  */
+
+/** Hoeveel honden er in één keer bij komen. */
+const STAP = 24;
 
 function Keuze({
   label,
@@ -77,6 +84,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
   const [leeftijd, setLeeftijd] = useState(ALLE);
   const [grootte, setGrootte] = useState(ALLE);
   const [geslacht, setGeslacht] = useState(ALLE);
+  const [zichtbaar, setZichtbaar] = useState(STAP);
 
   // Keuzes uit de URL overnemen. Bewust in een effect en niet met
   // useSearchParams: dat laatste vraagt bij een statische export om een
@@ -136,6 +144,15 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     });
   }, [honden, zoek, land, leeftijd, grootte, geslacht]);
 
+  // Bij een nieuwe filterkeuze weer bovenaan beginnen. Anders zie je na het
+  // filteren opeens honderd honden staan omdat je eerder had bijgeladen.
+  useEffect(() => {
+    setZichtbaar(STAP);
+  }, [zoek, land, leeftijd, grootte, geslacht]);
+
+  const getoond = gefilterd.slice(0, zichtbaar);
+  const rest = gefilterd.length - getoond.length;
+
   const filtersActief =
     zoek !== "" || land !== ALLE || leeftijd !== ALLE || grootte !== ALLE || geslacht !== ALLE;
 
@@ -150,8 +167,8 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
 
   return (
     <>
-      <div className="rounded-[2rem] border border-sand bg-white p-6 shadow-[0_24px_60px_-20px_rgba(61,46,34,0.18)] sm:p-8">
-        <label className="mb-5 block">
+      <div className="rounded-[1.75rem] border border-sand bg-white p-5 shadow-[0_24px_60px_-20px_rgba(61,46,34,0.18)] sm:rounded-[2rem] sm:p-8">
+        <label className="mb-4 block sm:mb-5">
           <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-taupe">
             Zoeken
           </span>
@@ -164,7 +181,10 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
           />
         </label>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Twee naast elkaar op de telefoon: vier keuzes onder elkaar maakte
+            het blok zo hoog dat je eroverheen moest scrollen om bij de honden
+            te komen. */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Keuze label="Verblijft in" waarde={land} opties={landen} onWijzig={setLand} />
           <Keuze
             label="Leeftijd"
@@ -176,7 +196,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
           <Keuze label="Geslacht" waarde={geslacht} opties={GESLACHTEN} onWijzig={setGeslacht} />
         </div>
 
-        <div className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-5 flex flex-col items-start gap-2 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[15px] text-taupe">
             <span className="font-semibold text-ink">{gefilterd.length}</span>{" "}
             {gefilterd.length === 1 ? "hond" : "honden"} gevonden
@@ -220,11 +240,30 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
           </button>
         </div>
       ) : (
-        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7 xl:grid-cols-4">
-          {gefilterd.map((hond) => (
-            <HondCard key={hond.id} dog={hond} />
-          ))}
-        </div>
+        <>
+          {/* Twee kolommen op de telefoon. Eén kolom betekende bij elke hond
+              een halve schermlengte vegen; zo zie je er vier per scherm. */}
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-6 lg:grid-cols-3 lg:gap-7 xl:grid-cols-4">
+            {getoond.map((hond) => (
+              <HondCard key={hond.id} dog={hond} />
+            ))}
+          </div>
+
+          {rest > 0 && (
+            <div className="mt-10 flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setZichtbaar((huidig) => huidig + STAP)}
+                className="inline-flex items-center justify-center rounded-full bg-ink px-8 py-3.5 text-base font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#2C2016]"
+              >
+                Meer honden laden
+              </button>
+              <p className="text-sm text-taupe">
+                {getoond.length} van de {gefilterd.length} getoond
+              </p>
+            </div>
+          )}
+        </>
       )}
     </>
   );

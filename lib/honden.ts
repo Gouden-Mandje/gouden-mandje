@@ -10,7 +10,20 @@
  * site nodig heeft, inclusief de omschrijvingen. Een tweede verzoek naar
  * honden_index.json zou dezelfde honden nog een keer ophalen, maar dan met
  * minder velden.
+ *
+ * Over het bewaren tijdens de build: Next bouwt de pagina's in meerdere
+ * processen tegelijk, en die delen geen geheugen. Een variabele in dit bestand
+ * werkt daardoor per proces, niet per build. Bij duizend hondpagina's werd
+ * hetzelfde bestand van 4 MB tientallen keren opnieuw opgehaald.
+ *
+ * Daarom schrijven we het na de eerste keer weg naar een tijdelijk bestand.
+ * Alle bouwprocessen kunnen daarbij, dus er is nog één netwerkverzoek nodig in
+ * plaats van tientallen. Dat scheelt gigabytes verkeer en minuten bouwtijd.
  */
+
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
 const DATA_BASIS =
   process.env.NEXT_PUBLIC_DATA_URL?.replace(/\/$/, "") ??
@@ -92,13 +105,59 @@ export type Organisatie = {
 // --------------------------------------------------------------------------
 let cache: TotaalBestand | null = null;
 
-async function haalTotaal(): Promise<TotaalBestand> {
-  if (cache) return cache;
+/** Waar het gedeelde tijdelijke bestand staat tijdens de build. */
+const TIJDELIJK = path.join(tmpdir(), "gouden-mandje-build", "honden_totaal.json");
+
+/**
+ * Hoe lang het tijdelijke bestand meegaat, in minuten.
+ *
+ * Lang genoeg om één build te overbruggen, kort genoeg dat een volgende build
+ * verse gegevens ophaalt. Zou dit te lang staan, dan bouwt je site zichzelf op
+ * met honden van gisteren.
+ */
+const HOUDBAAR_MINUTEN = 15;
+
+/** Lopende ophaalactie, zodat gelijktijdige aanroepen er niet twee starten. */
+let bezig: Promise<TotaalBestand> | null = null;
+
+async function uitTijdelijkBestand(): Promise<TotaalBestand | null> {
+  try {
+    const gegevens = await stat(TIJDELIJK);
+    const ouderdomMinuten = (Date.now() - gegevens.mtimeMs) / 60000;
+    if (ouderdomMinuten > HOUDBAAR_MINUTEN) return null;
+
+    const inhoud = await readFile(TIJDELIJK, "utf-8");
+    const gelezen = JSON.parse(inhoud) as TotaalBestand;
+    return Array.isArray(gelezen.honden) ? gelezen : null;
+  } catch {
+    // Bestaat niet, is stuk of onleesbaar: dan halen we hem gewoon op.
+    return null;
+  }
+}
+
+async function naarTijdelijkBestand(gegevens: TotaalBestand): Promise<void> {
+  try {
+    await mkdir(path.dirname(TIJDELIJK), { recursive: true });
+    // Eerst naar een eigen bestand schrijven en dan hernoemen zou netter zijn,
+    // maar dit draait alleen tijdens een build. Mocht het schrijven mislukken,
+    // dan valt alles terug op ophalen via het netwerk en werkt de build nog.
+    await writeFile(TIJDELIJK, JSON.stringify(gegevens), "utf-8");
+  } catch {
+    // Geen schrijfrechten of geen ruimte: niet erg, het is een optimalisatie.
+  }
+}
+
+async function haalOp(): Promise<TotaalBestand> {
+  const gedeeld = await uitTijdelijkBestand();
+  if (gedeeld) return gedeeld;
 
   const url = `${DATA_BASIS}/honden_totaal.json`;
-  // force-cache: bij een statische export wordt dit één keer opgehaald tijdens
-  // de build. Met no-store zou Next de pagina als dynamisch beschouwen en dan
-  // faalt de export, want er is geen server die tijdens een bezoek kan fetchen.
+  // force-cache moet blijven staan: met no-store beschouwt Next de pagina als
+  // dynamisch en faalt de statische export. Next kan dit bestand niet in zijn
+  // eigen cache kwijt omdat het groter is dan 2 MB, en daar waarschuwt hij
+  // over. Dat is onschuldig; het bewaren regelen we hierboven zelf, en daardoor
+  // verschijnt die waarschuwing nog maar een enkele keer per build in plaats
+  // van bij elke hondpagina.
   const antwoord = await fetch(url, { cache: "force-cache" });
 
   if (!antwoord.ok) {
@@ -115,8 +174,24 @@ async function haalTotaal(): Promise<TotaalBestand> {
     throw new Error(`Onverwacht formaat in ${url}: veld 'honden' ontbreekt`);
   }
 
-  cache = gegevens;
+  await naarTijdelijkBestand(gegevens);
   return gegevens;
+}
+
+async function haalTotaal(): Promise<TotaalBestand> {
+  if (cache) return cache;
+  if (bezig) return bezig;
+
+  bezig = haalOp()
+    .then((gegevens) => {
+      cache = gegevens;
+      return gegevens;
+    })
+    .finally(() => {
+      bezig = null;
+    });
+
+  return bezig;
 }
 
 // --------------------------------------------------------------------------

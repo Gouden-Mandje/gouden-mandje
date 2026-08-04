@@ -13,7 +13,9 @@ import { ArrowRight } from "./Icons";
 export default function HondCard({ dog }: { dog: Hond }) {
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-sand bg-white transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-20px_rgba(61,46,34,0.22)]">
-      <div className="relative aspect-[4/5] overflow-hidden bg-beige">
+      {/* Vierkant op de telefoon: bij 4:5 en twee kolommen werd het kaartje
+          zo hoog dat je er nog steeds doorheen moest scrollen. */}
+      <div className="relative aspect-square overflow-hidden bg-beige sm:aspect-[4/5]">
         {dog.image ? (
           <img
             src={dog.image}

@@ -8,6 +8,12 @@ import { useCallback, useEffect, useState } from "react";
  * Klikken op een miniatuur wisselt de grote foto, en met de pijltjestoetsen
  * blader je erdoorheen. Bewust geen zwaar carrousel-pakket: dit is een
  * afbeelding wisselen, daar hoeft geen bibliotheek van 40 kB voor mee.
+ *
+ * De grote foto wordt NIET bijgesneden. Dat was hij wel, op 4:3 met
+ * object-cover, en bij een staande foto verdween daardoor de kop van de hond
+ * uit beeld. Bij een windhond zag je alleen zijn poten staan. Nu past de hele
+ * foto in het kader, met een rustige achtergrond eromheen. Een beetje lege
+ * ruimte is beter dan een halve hond.
  */
 export default function HondGalerij({
   fotos,
@@ -50,12 +56,12 @@ export default function HondGalerij({
 
   return (
     <div>
-      <div className="group relative overflow-hidden rounded-[2rem] border border-sand bg-beige">
+      <div className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-[1.75rem] border border-sand bg-beige sm:aspect-[4/3] sm:rounded-[2rem]">
         <img
           key={fotos[actief]}
           src={fotos[actief]}
           alt={`${naam}, foto ${actief + 1} van ${aantal}`}
-          className="aspect-[4/3] w-full animate-[fadein_300ms_ease-out] object-cover"
+          className="h-full w-full animate-[fadein_300ms_ease-out] object-contain"
         />
 
         {aantal > 1 && (
@@ -85,7 +91,7 @@ export default function HondGalerij({
       </div>
 
       {aantal > 1 && (
-        <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-6">
+        <div className="mt-3 grid grid-cols-5 gap-2 sm:mt-4 sm:grid-cols-6 sm:gap-3">
           {fotos.map((foto, i) => (
             <button
               key={foto}
@@ -93,7 +99,7 @@ export default function HondGalerij({
               onClick={() => setActief(i)}
               aria-label={`Toon foto ${i + 1} van ${naam}`}
               aria-current={i === actief}
-              className={`overflow-hidden rounded-2xl border transition-all duration-300 ${
+              className={`overflow-hidden rounded-xl border transition-all duration-300 sm:rounded-2xl ${
                 i === actief
                   ? "border-clay ring-2 ring-clay/30"
                   : "border-sand opacity-70 hover:opacity-100"
