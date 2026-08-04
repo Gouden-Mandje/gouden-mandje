@@ -27,10 +27,11 @@ import {
  *      pagina onwerkbaar: je moest tientallen keren vegen voordat je ergens
  *      was. Er staan er 24, met een knop om bij te laden.
  *
- *   2. De keuzelijsten zitten in een venster dat van onderaf opkomt, met een
- *      zwevende knop die meescrollt. Zonder dat moest je bij hond zestig
- *      helemaal terug naar boven om te filteren, en dat is precies het moment
- *      waarop iemand afhaakt.
+ *   2. De keuzelijsten staan bovenaan, maar er zweeft ook een knop mee die
+ *      hetzelfde venster van onderaf opent. Zonder dat moest je bij hond
+ *      zestig helemaal terug naar boven om te filteren, en dat is precies het
+ *      moment waarop iemand afhaakt. Bovenaan staan ze uitgeklapt, want daar
+ *      is ruimte genoeg en scheelt het een tik.
  */
 
 /** Hoeveel honden er in één keer bij komen. */
@@ -236,10 +237,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
           />
         </label>
 
-        {/* Op de telefoon zitten de keuzelijsten in het venster. Vier
-            uitklapmenu's bovenaan namen daar een half scherm in beslag voordat
-            je ook maar één hond zag. */}
-        <div className="mt-5 hidden sm:block">{keuzes}</div>
+        <div className="mt-5">{keuzes}</div>
 
         <div className="mt-4 flex flex-col items-start gap-2 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[15px] text-taupe">
@@ -261,18 +259,6 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setVensterOpen(true)}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-ink bg-white px-6 py-3.5 text-[15px] font-semibold text-ink sm:hidden"
-        >
-          Filters
-          {filtersActief && (
-            <span className="rounded-full bg-clay px-2 py-0.5 text-[13px] text-white">
-              {actieveFilters}
-            </span>
-          )}
-        </button>
       </div>
 
       {gefilterd.length === 0 ? (
@@ -325,9 +311,9 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
         <button
           type="button"
           onClick={() => setVensterOpen(true)}
-          className="fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-ink px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_12px_30px_-8px_rgba(61,46,34,0.6)] sm:hidden"
+          className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_10px_26px_-8px_rgba(61,46,34,0.65)] sm:hidden"
         >
-          <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
+          <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" aria-hidden="true">
             <path
               d="M3 5h14M6 10h8M8.5 15h3"
               stroke="currentColor"
@@ -337,7 +323,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
           </svg>
           Filters
           {filtersActief && (
-            <span className="rounded-full bg-clay px-2 py-0.5 text-[13px]">
+            <span className="rounded-full bg-clay px-1.5 py-0.5 text-[11px] leading-none">
               {actieveFilters}
             </span>
           )}
