@@ -1,6 +1,13 @@
 import type { MetadataRoute } from "next";
 
 /**
+ * Verplicht bij een statische export: zonder deze regel wil Next robots.txt
+ * bij elk bezoek opnieuw opbouwen, en dat kan niet als er geen server is.
+ * De build faalt dan met "export const dynamic not configured".
+ */
+export const dynamic = "force-static";
+
+/**
  * robots.txt: wat zoekmachines wel en niet mogen.
  *
  * Alles staat open, want dat is het hele punt van deze site: de honden moeten

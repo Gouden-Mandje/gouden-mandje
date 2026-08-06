@@ -177,7 +177,6 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     });
 
     return () => cancelAnimationFrame(eerste);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [herstelScroll, geladen, zichtbaar]);
 
   const querystring = useCallback(() => {

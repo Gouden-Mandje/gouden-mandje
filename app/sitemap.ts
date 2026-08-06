@@ -2,6 +2,13 @@ import type { MetadataRoute } from "next";
 import { getHonden } from "@/lib/honden";
 
 /**
+ * Verplicht bij een statische export: zonder deze regel wil Next sitemap.xml
+ * bij elk bezoek opnieuw opbouwen, en dat kan niet als er geen server is.
+ * De build faalt dan met "export const dynamic not configured".
+ */
+export const dynamic = "force-static";
+
+/**
  * De sitemap: één bestand waarin de site zelf vertelt welke pagina's er zijn.
  *
  * Waarom dit nodig is: zonder sitemap moet een zoekmachine alle pagina's zelf
