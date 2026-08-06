@@ -51,6 +51,8 @@ type HondBron = {
   aanwezig: "aanwezig" | "verdwenen";
   eerst_gezien: string;
   laatst_gewijzigd: string;
+  /** Losse gegevens die niet elke organisatie levert. */
+  extra?: Record<string, unknown>;
 };
 
 type TotaalBestand = {
@@ -91,6 +93,17 @@ export type Hond = {
   organisationSlug: string;
   /** Waar de bezoeker heen gaat om te adopteren. */
   adoptionUrl: string;
+  /** Wanneer wij deze hond voor het eerst zagen. Voor "nieuwste eerst". */
+  addedAt: string;
+  /**
+   * Hoeveel maanden de hond al bij de organisatie op de site staat.
+   *
+   * Alleen ACE vermeldt dat ("Ter adoptie sinds"). Bij de rest vallen we terug
+   * op hoe lang wij hem al zien. Dat is een ondergrens en geen waarheid, maar
+   * voor sorteren op "wacht het langst" is het bruikbaar: een hond die wij al
+   * maanden zien, wacht ook echt al maanden.
+   */
+  waitingMonths: number | null;
 };
 
 export type Organisatie = {
@@ -275,7 +288,32 @@ function naarHond(bron: HondBron): Hond {
     organisation: bron.organisatie,
     organisationSlug: bron.organisatie_slug,
     adoptionUrl: bron.adoptie_url || bron.bron_url,
+    addedAt: bron.eerst_gezien || "",
+    waitingMonths: wachttijdInMaanden(bron),
   };
+}
+
+/**
+ * Hoe lang deze hond al wacht, in maanden.
+ *
+ * Eerst kijken of de organisatie het zelf zegt; ACE vermeldt "Ter adoptie
+ * sinds" en de scraper rekent dat om. Zo niet, dan tellen we vanaf het moment
+ * dat wij hem voor het eerst zagen. Dat onderschat de werkelijkheid, maar het
+ * onderscheid tussen een hond van vorige week en een van vorig jaar blijft
+ * gewoon zichtbaar.
+ */
+function wachttijdInMaanden(bron: HondBron): number | null {
+  const gemeld = bron.extra?.["wacht_maanden"];
+  if (typeof gemeld === "number" && gemeld >= 0) return gemeld;
+
+  if (!bron.eerst_gezien) return null;
+  const gezien = new Date(bron.eerst_gezien);
+  if (Number.isNaN(gezien.getTime())) return null;
+
+  const nu = new Date();
+  const maanden =
+    (nu.getFullYear() - gezien.getFullYear()) * 12 + (nu.getMonth() - gezien.getMonth());
+  return Math.max(maanden, 0);
 }
 
 // --------------------------------------------------------------------------
@@ -358,9 +396,28 @@ export async function getVerhaalHond(): Promise<Hond | null> {
 
   const kandidaten = honden
     .filter((hond) => hond.status === "beschikbaar" && hond.image && hond.description.length > 300)
-    .sort((a, b) => b.description.length - a.description.length);
+    .sort((a, b) => b.description.length - a.description.length)
+    // Uit de honderd sterkste verhalen kiezen, niet uit alles. Een verhaal van
+    // vijftig tekens werkt niet in dit blok.
+    .slice(0, 100);
 
-  return kandidaten[0] ?? null;
+  if (kandidaten.length === 0) return null;
+
+  // Elke dag een andere hond. Wie twee keer langskomt ziet iets nieuws, en de
+  // honden die lang wachten komen zo ook een keer aan de beurt.
+  //
+  // Bewust gekoppeld aan de datum en niet aan toeval: de site wordt bij elke
+  // publicatie opnieuw gebouwd, soms een paar keer per uur. Met een willekeurige
+  // keuze zou de hond op de homepage om de tien minuten wisselen, en dat is
+  // onrustig voor wie zit te lezen.
+  const vandaag = new Date();
+  const dagnummer = Math.floor(
+    (Date.UTC(vandaag.getFullYear(), vandaag.getMonth(), vandaag.getDate()) -
+      Date.UTC(vandaag.getFullYear(), 0, 1)) /
+      86400000
+  );
+
+  return kandidaten[dagnummer % kandidaten.length];
 }
 
 /**

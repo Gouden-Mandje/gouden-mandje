@@ -35,20 +35,34 @@ function korteLeeftijd(leeftijd: string): string {
   return leeftijd.split(" en ")[0].trim();
 }
 
-export default function HondCard({ dog }: { dog: Hond }) {
+export default function HondCard({
+  dog,
+  bekeken = false,
+  onOpen,
+}: {
+  dog: Hond;
+  /** Al eens geopend. Bij duizend honden weet je anders niet meer waar je was. */
+  bekeken?: boolean;
+  onOpen?: () => void;
+}) {
   const gereserveerd = dog.status === "gereserveerd";
 
   return (
     <Link
       href={`/honden/${dog.id}/`}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-sand bg-white transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-20px_rgba(61,46,34,0.22)] sm:rounded-[1.75rem]"
+      onClick={onOpen}
+      className={`group flex h-full flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-20px_rgba(61,46,34,0.22)] sm:rounded-[1.75rem] ${
+        bekeken ? "border-gold/60" : "border-sand"
+      }`}
     >
       <div className="relative aspect-square overflow-hidden bg-beige sm:aspect-[4/5]">
         {dog.image ? (
           <img
             src={dog.image}
             alt={`${dog.name}, rescuehond uit ${dog.origin || dog.country}`}
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+            className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05] ${
+              bekeken ? "opacity-80" : ""
+            }`}
             loading="lazy"
           />
         ) : (
@@ -75,6 +89,17 @@ export default function HondCard({ dog }: { dog: Hond }) {
         >
           {dog.statusLabel}
         </span>
+
+        {/* Een klein vinkje bij honden die je al open hebt gehad. */}
+        {bekeken && (
+          <span
+            title="Je hebt deze hond al bekeken"
+            className="absolute bottom-2.5 left-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-[12px] text-ink backdrop-blur-md sm:bottom-4 sm:left-4 sm:h-7 sm:w-7 sm:text-[13px]"
+          >
+            <span aria-hidden="true">✓</span>
+            <span className="sr-only">Al bekeken</span>
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-3 sm:p-6">

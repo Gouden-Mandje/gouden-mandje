@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Hond } from "@/lib/honden";
+import { bewaarSelectie } from "@/lib/selectie";
+import { SORTERINGEN, STANDAARD_SORTERING, sorteer } from "@/lib/sortering";
 import HondCard from "./HondCard";
 import {
   ALLE,
@@ -18,24 +20,31 @@ import {
  * nodig. Groeit het naar duizenden, dan is dit het punt om over te stappen op
  * filteren tijdens de build of op een echte zoekindex.
  *
- * De begininstelling komt uit de URL, zodat het zoekblok op de homepage hier
- * naartoe kan sturen en je een gefilterd overzicht kunt delen.
+ * Vier dingen die het bladeren draaglijk maken bij duizend honden:
  *
- * Twee dingen die op de telefoon anders werken dan op een groot scherm:
+ *   1. **De filters staan in de URL.** Klik je op een hond en ga je terug, dan
+ *      staan je keuzes er nog. Zonder dat mocht je opnieuw beginnen, en dat is
+ *      precies het moment waarop iemand afhaakt. Meegenomen voordeel: je kunt
+ *      een gefilterd overzicht delen.
  *
- *   1. Niet alles staat meteen op het scherm. Met bijna duizend honden werd de
- *      pagina onwerkbaar: je moest tientallen keren vegen voordat je ergens
- *      was. Er staan er 24, met een knop om bij te laden.
+ *   2. **Hoeveel er getoond zijn onthouden we ook.** Had je driehonderd honden
+ *      bijgeladen, dan sta je na terugkeren niet weer op vierentwintig.
  *
- *   2. De keuzelijsten staan bovenaan, maar er zweeft ook een knop mee die
- *      hetzelfde venster van onderaf opent. Zonder dat moest je bij hond
- *      zestig helemaal terug naar boven om te filteren, en dat is precies het
- *      moment waarop iemand afhaakt. Bovenaan staan ze uitgeklapt, want daar
- *      is ruimte genoeg en scheelt het een tik.
+ *   3. **De selectie gaat mee naar de hondpagina**, zodat je daar met pijltjes
+ *      door je eigen zoekresultaat kunt bladeren.
+ *
+ *   4. **Bij elke keuze staat hoeveel honden hij oplevert.** Zo zie je vooraf
+ *      of iets zin heeft in plaats van uit te komen op nul.
  */
 
 /** Hoeveel honden er in één keer bij komen. */
 const STAP = 24;
+
+/** Waar we onthouden hoeveel honden er getoond waren. */
+const GETOOND_SLEUTEL = "gm-getoond";
+
+/** Waar we bijhouden welke honden al bekeken zijn. */
+const BEKEKEN_SLEUTEL = "gm-bekeken";
 
 function Keuze({
   label,
@@ -45,7 +54,7 @@ function Keuze({
 }: {
   label: string;
   waarde: string;
-  opties: { waarde: string; label: string }[];
+  opties: { waarde: string; label: string; aantal?: number }[];
   onWijzig: (waarde: string) => void;
 }) {
   return (
@@ -64,6 +73,7 @@ function Keuze({
           {opties.map((optie) => (
             <option key={optie.waarde} value={optie.waarde}>
               {optie.label}
+              {optie.aantal !== undefined ? ` (${optie.aantal})` : ""}
             </option>
           ))}
         </select>
@@ -92,8 +102,11 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
   const [leeftijd, setLeeftijd] = useState(ALLE);
   const [grootte, setGrootte] = useState(ALLE);
   const [geslacht, setGeslacht] = useState(ALLE);
+  const [volgorde, setVolgorde] = useState<string>(STANDAARD_SORTERING);
   const [zichtbaar, setZichtbaar] = useState(STAP);
   const [vensterOpen, setVensterOpen] = useState(false);
+  const [bekeken, setBekeken] = useState<Set<string>>(new Set());
+  const [geladen, setGeladen] = useState(false);
 
   // Keuzes uit de URL overnemen. Bewust in een effect en niet met
   // useSearchParams: dat laatste vraagt bij een statische export om een
@@ -110,7 +123,45 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     zet("leeftijd", setLeeftijd);
     zet("grootte", setGrootte);
     zet("geslacht", setGeslacht);
+    zet("volgorde", setVolgorde);
+
+    // Hoeveel er getoond waren voordat je op een hond klikte.
+    try {
+      const opgeslagen = Number(sessionStorage.getItem(GETOOND_SLEUTEL));
+      if (opgeslagen >= STAP) setZichtbaar(opgeslagen);
+    } catch {
+      // Privémodus: dan begin je gewoon weer bij het begin.
+    }
+
+    try {
+      const lijst = JSON.parse(localStorage.getItem(BEKEKEN_SLEUTEL) || "[]");
+      if (Array.isArray(lijst)) setBekeken(new Set(lijst));
+    } catch {
+      // Geen ramp: dan is er niets gemarkeerd.
+    }
+
+    setGeladen(true);
   }, []);
+
+  const querystring = useCallback(() => {
+    const parameters = new URLSearchParams();
+    if (zoek.trim()) parameters.set("zoek", zoek.trim());
+    if (land !== ALLE) parameters.set("land", land);
+    if (leeftijd !== ALLE) parameters.set("leeftijd", leeftijd);
+    if (grootte !== ALLE) parameters.set("grootte", grootte);
+    if (geslacht !== ALLE) parameters.set("geslacht", geslacht);
+    if (volgorde !== STANDAARD_SORTERING) parameters.set("volgorde", volgorde);
+    return parameters.toString();
+  }, [zoek, land, leeftijd, grootte, geslacht, volgorde]);
+
+  // De keuzes in de URL zetten. replaceState en niet pushState: anders zou de
+  // terugknop je door elke afzonderlijke filterwijziging laten teruglopen in
+  // plaats van naar de pagina waar je vandaan kwam.
+  useEffect(() => {
+    if (!geladen) return;
+    const query = querystring();
+    window.history.replaceState(null, "", `/honden/${query ? `?${query}` : ""}`);
+  }, [geladen, querystring]);
 
   // Zolang het venster openstaat mag de pagina eronder niet meescrollen.
   useEffect(() => {
@@ -136,10 +187,48 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
   // weten: kan ik deze hond gaan ontmoeten of zit hij nog in het buitenland.
   // Nederland staat er dus gewoon tussen als optie.
   const landen = useMemo(() => {
-    const uniek = Array.from(new Set(honden.map((hond) => hond.country).filter(Boolean)));
-    uniek.sort((a, b) => a.localeCompare(b, "nl"));
-    return uniek.map((naam) => ({ waarde: naam, label: naam }));
+    const tellingen = new Map<string, number>();
+    for (const hond of honden) {
+      if (!hond.country) continue;
+      tellingen.set(hond.country, (tellingen.get(hond.country) ?? 0) + 1);
+    }
+    return Array.from(tellingen.entries())
+      .sort((a, b) => a[0].localeCompare(b[0], "nl"))
+      .map(([naam, aantal]) => ({ waarde: naam, label: naam, aantal }));
   }, [honden]);
+
+  const grootteOpties = useMemo(
+    () =>
+      GROOTTES.map((optie) => ({
+        ...optie,
+        aantal: honden.filter((hond) => hond.size === optie.waarde).length,
+      })),
+    [honden]
+  );
+
+  const geslachtOpties = useMemo(
+    () =>
+      GESLACHTEN.map((optie) => ({
+        ...optie,
+        aantal: honden.filter((hond) => hond.gender === optie.waarde).length,
+      })),
+    [honden]
+  );
+
+  const leeftijdOpties = useMemo(
+    () =>
+      LEEFTIJDGROEPEN.map((groep) => ({
+        waarde: groep.label,
+        label: groep.label,
+        aantal: honden.filter(
+          (hond) =>
+            hond.ageMonths !== null &&
+            hond.ageMonths >= groep.min &&
+            hond.ageMonths <= groep.max
+        ).length,
+      })),
+    [honden]
+  );
 
   // Honden zonder bekende grootte tellen mee bij elke keuze. Niet elke
   // organisatie vermeldt het, en een hond verbergen die misschien wel past is
@@ -153,7 +242,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     const zoekterm = zoek.trim().toLowerCase();
     const groep = LEEFTIJDGROEPEN.find((g) => g.label === leeftijd);
 
-    return honden.filter((hond) => {
+    const passend = honden.filter((hond) => {
       if (land !== ALLE && hond.country !== land) return false;
       // "onbekend" valt nooit weg: zie de toelichting bij zonderGrootte.
       if (grootte !== ALLE && hond.size !== grootte && hond.size !== "onbekend") return false;
@@ -171,20 +260,63 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
 
       return true;
     });
-  }, [honden, zoek, land, leeftijd, grootte, geslacht]);
+
+    return sorteer(passend, volgorde);
+  }, [honden, zoek, land, leeftijd, grootte, geslacht, volgorde]);
 
   // Bij een nieuwe filterkeuze weer bovenaan beginnen. Anders zie je na het
   // filteren opeens honderd honden staan omdat je eerder had bijgeladen.
+  // Bij de eerste keer laden juist niet, want dan komt het aantal uit de
+  // vorige bezoekbeurt.
   useEffect(() => {
+    if (!geladen) return;
     setZichtbaar(STAP);
-  }, [zoek, land, leeftijd, grootte, geslacht]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoek, land, leeftijd, grootte, geslacht, volgorde]);
 
-  const getoond = gefilterd.slice(0, zichtbaar);
+  const getoond = useMemo(
+    () => gefilterd.slice(0, zichtbaar),
+    [gefilterd, zichtbaar]
+  );
   const rest = gefilterd.length - getoond.length;
 
-  const actieveFilters = [land, leeftijd, grootte, geslacht].filter(
-    (waarde) => waarde !== ALLE
-  ).length + (zoek.trim() ? 1 : 0);
+  // De selectie bewaren zodat je op de hondpagina kunt doorbladeren, plus
+  // hoeveel er getoond waren zodat je op dezelfde plek terugkomt.
+  useEffect(() => {
+    if (!geladen) return;
+    const namen: Record<string, string> = {};
+    for (const hond of gefilterd) namen[hond.id] = hond.name;
+
+    bewaarSelectie({
+      ids: gefilterd.map((hond) => hond.id),
+      namen,
+      filters: querystring(),
+    });
+
+    try {
+      sessionStorage.setItem(GETOOND_SLEUTEL, String(zichtbaar));
+    } catch {
+      // Privémodus.
+    }
+  }, [geladen, gefilterd, zichtbaar, querystring]);
+
+  function markeerBekeken(id: string) {
+    setBekeken((huidig) => {
+      if (huidig.has(id)) return huidig;
+      const nieuw = new Set(huidig);
+      nieuw.add(id);
+      try {
+        localStorage.setItem(BEKEKEN_SLEUTEL, JSON.stringify(Array.from(nieuw)));
+      } catch {
+        // Privémodus: dan onthouden we het alleen tijdens dit bezoek.
+      }
+      return nieuw;
+    });
+  }
+
+  const actieveFilters =
+    [land, leeftijd, grootte, geslacht].filter((waarde) => waarde !== ALLE).length +
+    (zoek.trim() ? 1 : 0);
   const filtersActief = actieveFilters > 0;
 
   function wisFilters() {
@@ -193,32 +325,49 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     setLeeftijd(ALLE);
     setGrootte(ALLE);
     setGeslacht(ALLE);
-    window.history.replaceState(null, "", "/honden/");
   }
 
-  /** De vier keuzelijsten. Staan zowel bovenaan als in het venster. */
+  /** De keuzelijsten. Staan zowel bovenaan als in het venster. */
   const keuzes = (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
       <Keuze label="Verblijft in" waarde={land} opties={landen} onWijzig={setLand} />
-      <Keuze
-        label="Leeftijd"
-        waarde={leeftijd}
-        opties={LEEFTIJDGROEPEN.map((g) => ({ waarde: g.label, label: g.label }))}
-        onWijzig={setLeeftijd}
-      />
-      <Keuze label="Grootte" waarde={grootte} opties={GROOTTES} onWijzig={setGrootte} />
-      <Keuze label="Geslacht" waarde={geslacht} opties={GESLACHTEN} onWijzig={setGeslacht} />
+      <Keuze label="Leeftijd" waarde={leeftijd} opties={leeftijdOpties} onWijzig={setLeeftijd} />
+      <Keuze label="Grootte" waarde={grootte} opties={grootteOpties} onWijzig={setGrootte} />
+      <Keuze label="Geslacht" waarde={geslacht} opties={geslachtOpties} onWijzig={setGeslacht} />
+      <label className="block">
+        <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-taupe">
+          Sorteren
+        </span>
+        <div className="relative">
+          <select
+            value={volgorde}
+            onChange={(event) => setVolgorde(event.target.value)}
+            aria-label="Sorteren"
+            className="w-full cursor-pointer appearance-none rounded-2xl border border-sand bg-cream px-4 py-3.5 pr-9 text-[15px] font-medium text-ink outline-none transition-all duration-300 hover:border-gold focus:border-gold focus:ring-4 focus:ring-gold/15"
+          >
+            {SORTERINGEN.map((optie) => (
+              <option key={optie.waarde} value={optie.waarde}>
+                {optie.label}
+              </option>
+            ))}
+          </select>
+          <svg
+            viewBox="0 0 20 20"
+            className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-taupe"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="m6 8 4 4 4-4"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      </label>
     </div>
-  );
-
-  const telregel = (
-    <>
-      <span className="font-semibold text-ink">{gefilterd.length}</span>{" "}
-      {gefilterd.length === 1 ? "hond" : "honden"} gevonden
-      {filtersActief && honden.length !== gefilterd.length
-        ? ` van de ${honden.length}`
-        : ""}
-    </>
   );
 
   return (
@@ -241,7 +390,11 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
 
         <div className="mt-4 flex flex-col items-start gap-2 sm:mt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[15px] text-taupe">
-            {telregel}
+            <span className="font-semibold text-ink">{gefilterd.length}</span>{" "}
+            {gefilterd.length === 1 ? "hond" : "honden"} gevonden
+            {filtersActief && honden.length !== gefilterd.length
+              ? ` van de ${honden.length}`
+              : ""}
             {grootte !== ALLE && zonderGrootte > 0 && (
               <span className="block text-[13px]">
                 Inclusief honden waarvan de grootte niet vermeld staat.
@@ -258,7 +411,6 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
             </button>
           )}
         </div>
-
       </div>
 
       {gefilterd.length === 0 ? (
@@ -285,7 +437,12 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
               een halve schermlengte vegen; zo zie je er vier per scherm. */}
           <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-6 lg:grid-cols-3 lg:gap-7 xl:grid-cols-4">
             {getoond.map((hond) => (
-              <HondCard key={hond.id} dog={hond} />
+              <HondCard
+                key={hond.id}
+                dog={hond}
+                bekeken={bekeken.has(hond.id)}
+                onOpen={() => markeerBekeken(hond.id)}
+              />
             ))}
           </div>
 

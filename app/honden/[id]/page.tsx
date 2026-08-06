@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import DeelKnop from "@/components/DeelKnop";
 import Footer from "@/components/Footer";
 import HondGalerij from "@/components/HondGalerij";
+import HondNavigatie from "@/components/HondNavigatie";
 import Nav from "@/components/Nav";
 import { getHond, getHonden } from "@/lib/honden";
 
@@ -110,6 +112,10 @@ export default async function HondPagina({
                   </div>
                 </div>
               )}
+
+              {/* Bladeren door de honden die na het filteren overbleven.
+                  Toont zichzelf alleen wanneer die selectie er is. */}
+              <HondNavigatie id={hond.id} />
             </div>
 
             {/* Gegevens en adoptieknop */}
@@ -168,6 +174,8 @@ export default async function HondPagina({
                 <p className="mt-3 text-center text-[13px] text-taupe">
                   Je gaat naar de website van de stichting
                 </p>
+
+                <DeelKnop naam={hond.name} organisatie={hond.organisation} />
               </div>
             </aside>
           </div>
