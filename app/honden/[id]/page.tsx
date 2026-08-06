@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import DeelKnop from "@/components/DeelKnop";
 import Footer from "@/components/Footer";
 import HondGalerij from "@/components/HondGalerij";
-import HondNavigatie from "@/components/HondNavigatie";
 import Nav from "@/components/Nav";
+import TerugKnop from "@/components/TerugKnop";
 import { getHond, getHonden } from "@/lib/honden";
 
 /**
@@ -88,12 +87,9 @@ export default async function HondPagina({
 
       <article className="px-4 pb-24 pt-32 sm:px-6 sm:pb-32 sm:pt-40 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <Link
-            href="/honden/"
-            className="inline-flex items-center gap-2 text-[15px] font-medium text-taupe transition-colors hover:text-ink"
-          >
-            <span aria-hidden="true">←</span> Terug naar alle honden
-          </Link>
+          {/* Neemt je filters mee terug. Deze knop verwees hiervoor hard naar
+              /honden/ en gooide daarmee je hele zoektocht weg. */}
+          <TerugKnop />
 
           <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-14">
             {/* Foto's en verhaal */}
@@ -112,10 +108,6 @@ export default async function HondPagina({
                   </div>
                 </div>
               )}
-
-              {/* Bladeren door de honden die na het filteren overbleven.
-                  Toont zichzelf alleen wanneer die selectie er is. */}
-              <HondNavigatie id={hond.id} />
             </div>
 
             {/* Gegevens en adoptieknop */}

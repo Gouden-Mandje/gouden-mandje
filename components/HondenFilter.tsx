@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Hond } from "@/lib/honden";
 import { bewaarSelectie } from "@/lib/selectie";
-import { SORTERINGEN, STANDAARD_SORTERING, sorteer } from "@/lib/sortering";
 import HondCard from "./HondCard";
 import {
   ALLE,
@@ -102,7 +101,6 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
   const [leeftijd, setLeeftijd] = useState(ALLE);
   const [grootte, setGrootte] = useState(ALLE);
   const [geslacht, setGeslacht] = useState(ALLE);
-  const [volgorde, setVolgorde] = useState<string>(STANDAARD_SORTERING);
   const [zichtbaar, setZichtbaar] = useState(STAP);
   const [vensterOpen, setVensterOpen] = useState(false);
   const [bekeken, setBekeken] = useState<Set<string>>(new Set());
@@ -123,7 +121,6 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     zet("leeftijd", setLeeftijd);
     zet("grootte", setGrootte);
     zet("geslacht", setGeslacht);
-    zet("volgorde", setVolgorde);
 
     // Hoeveel er getoond waren voordat je op een hond klikte.
     try {
@@ -150,9 +147,8 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     if (leeftijd !== ALLE) parameters.set("leeftijd", leeftijd);
     if (grootte !== ALLE) parameters.set("grootte", grootte);
     if (geslacht !== ALLE) parameters.set("geslacht", geslacht);
-    if (volgorde !== STANDAARD_SORTERING) parameters.set("volgorde", volgorde);
     return parameters.toString();
-  }, [zoek, land, leeftijd, grootte, geslacht, volgorde]);
+  }, [zoek, land, leeftijd, grootte, geslacht]);
 
   // De keuzes in de URL zetten. replaceState en niet pushState: anders zou de
   // terugknop je door elke afzonderlijke filterwijziging laten teruglopen in
@@ -242,7 +238,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     const zoekterm = zoek.trim().toLowerCase();
     const groep = LEEFTIJDGROEPEN.find((g) => g.label === leeftijd);
 
-    const passend = honden.filter((hond) => {
+    return honden.filter((hond) => {
       if (land !== ALLE && hond.country !== land) return false;
       // "onbekend" valt nooit weg: zie de toelichting bij zonderGrootte.
       if (grootte !== ALLE && hond.size !== grootte && hond.size !== "onbekend") return false;
@@ -260,9 +256,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
 
       return true;
     });
-
-    return sorteer(passend, volgorde);
-  }, [honden, zoek, land, leeftijd, grootte, geslacht, volgorde]);
+  }, [honden, zoek, land, leeftijd, grootte, geslacht]);
 
   // Bij een nieuwe filterkeuze weer bovenaan beginnen. Anders zie je na het
   // filteren opeens honderd honden staan omdat je eerder had bijgeladen.
@@ -272,7 +266,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     if (!geladen) return;
     setZichtbaar(STAP);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoek, land, leeftijd, grootte, geslacht, volgorde]);
+  }, [zoek, land, leeftijd, grootte, geslacht]);
 
   const getoond = useMemo(
     () => gefilterd.slice(0, zichtbaar),
@@ -329,44 +323,11 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
 
   /** De keuzelijsten. Staan zowel bovenaan als in het venster. */
   const keuzes = (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Keuze label="Verblijft in" waarde={land} opties={landen} onWijzig={setLand} />
       <Keuze label="Leeftijd" waarde={leeftijd} opties={leeftijdOpties} onWijzig={setLeeftijd} />
       <Keuze label="Grootte" waarde={grootte} opties={grootteOpties} onWijzig={setGrootte} />
       <Keuze label="Geslacht" waarde={geslacht} opties={geslachtOpties} onWijzig={setGeslacht} />
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-taupe">
-          Sorteren
-        </span>
-        <div className="relative">
-          <select
-            value={volgorde}
-            onChange={(event) => setVolgorde(event.target.value)}
-            aria-label="Sorteren"
-            className="w-full cursor-pointer appearance-none rounded-2xl border border-sand bg-cream px-4 py-3.5 pr-9 text-[15px] font-medium text-ink outline-none transition-all duration-300 hover:border-gold focus:border-gold focus:ring-4 focus:ring-gold/15"
-          >
-            {SORTERINGEN.map((optie) => (
-              <option key={optie.waarde} value={optie.waarde}>
-                {optie.label}
-              </option>
-            ))}
-          </select>
-          <svg
-            viewBox="0 0 20 20"
-            className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-taupe"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="m6 8 4 4 4-4"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-      </label>
     </div>
   );
 
