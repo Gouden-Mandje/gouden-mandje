@@ -93,8 +93,16 @@ export type Hond = {
   organisationSlug: string;
   /** Waar de bezoeker heen gaat om te adopteren. */
   adoptionUrl: string;
-  /** Wanneer wij deze hond voor het eerst zagen. Voor "nieuwste eerst". */
+  /** Wanneer wij deze hond voor het eerst zagen. */
   addedAt: string;
+  /**
+   * Wanneer er voor het laatst iets aan deze hond veranderde.
+   *
+   * Gaat mee in de sitemap als `lastModified`. Zoekmachines gebruiken dat om
+   * te bepalen welke pagina's opnieuw bekeken moeten worden; zonder die datum
+   * moeten ze alle negenhonderd pagina's blindelings aflopen.
+   */
+  updatedAt: string;
   /**
    * Hoeveel maanden de hond al bij de organisatie op de site staat.
    *
@@ -289,6 +297,7 @@ function naarHond(bron: HondBron): Hond {
     organisationSlug: bron.organisatie_slug,
     adoptionUrl: bron.adoptie_url || bron.bron_url,
     addedAt: bron.eerst_gezien || "",
+    updatedAt: bron.laatst_gewijzigd || bron.eerst_gezien || "",
     waitingMonths: wachttijdInMaanden(bron),
   };
 }
