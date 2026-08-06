@@ -47,12 +47,36 @@ export default async function OverOns() {
           </div>
 
           <h2 className="mt-14 text-2xl font-medium tracking-tight [font-family:var(--font-display)] sm:text-3xl">
+            Wie hierachter zit
+          </h2>
+          <div className="mt-4 space-y-4 text-[17px] leading-relaxed text-[#6B5847]">
+            <p>
+              Mijn naam is Pim. Samen met mijn vriendin heb ik een rescuehond uit
+              Griekenland, Louis. Hij is als pup in zijn eentje rondzwervend gevonden
+              op een industrieterrein.
+            </p>
+            <p>
+              Tijdens die zoektocht liepen we zelf tegen die dertig tabbladen aan. Ik
+              werk veel met computers en automatisering, dus wat voor een ander een
+              vervelend probleem is, was voor mij vooral een op te lossen probleem.
+            </p>
+            <p>
+              Daarnaast runnen we een webshop in dierenartikelen waarvan een deel van
+              de winst naar rescue-organisaties in het buitenland gaat. Gouden Mandje
+              komt daaruit voort, maar staat er los van.
+            </p>
+          </div>
+
+          <h2 className="mt-14 text-2xl font-medium tracking-tight [font-family:var(--font-display)] sm:text-3xl">
             Wat wij wel en niet zijn
           </h2>
           <div className="mt-4 space-y-4 text-[17px] leading-relaxed text-[#6B5847]">
             <p>
-              Wij zijn geen asiel en geen bemiddelaar. Wij houden geen honden, doen
-              geen adoptiegesprekken en vragen nergens geld voor. Wij zijn een
+              Wij zijn geen asiel en geen bemiddelaar. Wij houden geen honden en doen
+              geen adoptiegesprekken. Gouden Mandje is gratis voor stichtingen en voor
+              bezoekers. Wij vragen stichtingen nooit om te betalen voor een plek op de
+              site en er is geen enkele manier waarop een stichting hier hoger of
+              prominenter komt te staan door ons iets te geven. Wij zijn een
               vindplaats, meer niet.
             </p>
             <p>
@@ -73,7 +97,12 @@ export default async function OverOns() {
               {aantallen.organisaties === 1
                 ? "één stichting"
                 : `${aantallen.organisaties} stichtingen`}
-              . Er komen er meer bij naarmate stichtingen zich aansluiten.
+              .
+            </p>
+            <p>
+              Elke stichting die hier staat, is door ons benaderd met de vraag of dit
+              wat hen betreft in orde is. Wil een stichting er niet op, dan halen wij
+              die er dezelfde dag af, zonder dat daar een reden bij hoeft.
             </p>
             <p>
               Ken je een stichting die hier hoort te staan, of ben je er zelf een?
