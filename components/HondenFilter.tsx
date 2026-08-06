@@ -42,6 +42,9 @@ const STAP = 24;
 /** Waar we onthouden hoeveel honden er getoond waren. */
 const GETOOND_SLEUTEL = "gm-getoond";
 
+/** Waar we onthouden hoe ver de bezoeker gescrold was. */
+const SCROLL_SLEUTEL = "gm-scroll";
+
 /** Waar we bijhouden welke honden al bekeken zijn. */
 const BEKEKEN_SLEUTEL = "gm-bekeken";
 
@@ -105,6 +108,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
   const [vensterOpen, setVensterOpen] = useState(false);
   const [bekeken, setBekeken] = useState<Set<string>>(new Set());
   const [geladen, setGeladen] = useState(false);
+  const [herstelScroll, setHerstelScroll] = useState<number | null>(null);
 
   // Keuzes uit de URL overnemen. Bewust in een effect en niet met
   // useSearchParams: dat laatste vraagt bij een statische export om een
@@ -137,8 +141,44 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
       // Geen ramp: dan is er niets gemarkeerd.
     }
 
+    // Hoe ver je gescrold was voordat je op een hond klikte.
+    try {
+      const positie = Number(sessionStorage.getItem(SCROLL_SLEUTEL));
+      if (positie > 0) setHerstelScroll(positie);
+    } catch {
+      // Privémodus: dan begin je bovenaan.
+    }
+
     setGeladen(true);
   }, []);
+
+  /**
+   * Terugspringen naar waar je was.
+   *
+   * Next zet je bij navigatie bovenaan de pagina. Bij terugklikken herstelt hij
+   * de positie normaal gesproken zelf, maar hier niet: de kaartjes verschijnen
+   * pas nadat de opgeslagen gegevens uit sessionStorage zijn gelezen, en op dat
+   * moment is de pagina nog leeg. Er valt dan niets te herstellen.
+   *
+   * Vandaar dat we het zelf doen, en pas nadat de kaartjes er staan. Zonder dit
+   * kwam je na het lezen van één hondverhaal weer bovenaan uit, ook al had je
+   * al honderd honden bijgeladen.
+   */
+  useEffect(() => {
+    if (herstelScroll === null || !geladen) return;
+
+    // Twee frames wachten: het eerste zet de kaartjes neer, het tweede geeft de
+    // browser de kans om de hoogte van de pagina te bepalen.
+    const eerste = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: herstelScroll, behavior: "instant" as ScrollBehavior });
+        setHerstelScroll(null);
+      });
+    });
+
+    return () => cancelAnimationFrame(eerste);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [herstelScroll, geladen, zichtbaar]);
 
   const querystring = useCallback(() => {
     const parameters = new URLSearchParams();
@@ -294,6 +334,19 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
     }
   }, [geladen, gefilterd, zichtbaar, querystring]);
 
+  /**
+   * Bij het openen van een hond: onthouden waar je stond en dat je hem gezien
+   * hebt. Beide gebeuren op hetzelfde moment, want het is dezelfde handeling.
+   */
+  function openHond(id: string) {
+    try {
+      sessionStorage.setItem(SCROLL_SLEUTEL, String(window.scrollY));
+    } catch {
+      // Privémodus.
+    }
+    markeerBekeken(id);
+  }
+
   function markeerBekeken(id: string) {
     setBekeken((huidig) => {
       if (huidig.has(id)) return huidig;
@@ -402,7 +455,7 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
                 key={hond.id}
                 dog={hond}
                 bekeken={bekeken.has(hond.id)}
-                onOpen={() => markeerBekeken(hond.id)}
+                onOpen={() => openHond(hond.id)}
               />
             ))}
           </div>
