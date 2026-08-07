@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { alleGroepen } from "@/lib/groepen";
 import { getHonden } from "@/lib/honden";
 
 /**
@@ -64,6 +65,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: prioriteit,
   }));
 
+  // De groepspagina's: /overzicht/oudere-honden/ en dergelijke. Die krijgen een
+  // hogere prioriteit dan een losse hond, want dit zijn de pagina's waarop
+  // gezocht wordt en waarlangs een bezoeker bij de honden uitkomt.
+  const groepen: MetadataRoute.Sitemap = alleGroepen(honden).map((groep) => ({
+    url: `${SITE}/overzicht/${groep.slug}/`,
+    lastModified: new Date(),
+    changeFrequency: "daily",
+    priority: 0.85,
+  }));
+
   const hondpaginas: MetadataRoute.Sitemap = honden.map((hond) => ({
     url: `${SITE}/honden/${hond.id}/`,
     lastModified: alsDatum(hond.updatedAt),
@@ -74,5 +85,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...vast, ...hondpaginas];
+  return [...vast, ...groepen, ...hondpaginas];
 }

@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Alle honden | Gouden Mandje",
   description:
     "Bekijk alle rescuehonden die via aangesloten stichtingen een thuis zoeken. Filter op land, leeftijd, grootte en geslacht.",
+  alternates: { canonical: "https://www.gouden-mandje.nl/honden/" },
 };
 
 export default async function HondenPagina() {
@@ -36,6 +37,7 @@ export default async function HondenPagina() {
           </div>
 
           <HondenFilter honden={honden} />
+
         </div>
       </section>
 
