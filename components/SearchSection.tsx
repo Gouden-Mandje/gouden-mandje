@@ -18,8 +18,11 @@ export default async function SearchSection() {
 
   return (
     <section className="relative z-10 px-4 sm:px-6 lg:px-8">
-      <Reveal className="mx-auto -mt-14 max-w-6xl sm:-mt-16">
-        <div className="rounded-[2rem] border border-sand bg-white p-6 shadow-[0_24px_60px_-20px_rgba(61,46,34,0.18)] sm:p-8">
+      {/* Op mobiel geen overlap: het blok schoof over de knoppen van de Hero
+          en dan was "Voor stichtingen" niet meer aan te tikken. Vanaf tablet is
+          er genoeg ruimte en mag het er weer overheen. */}
+      <Reveal className="mx-auto mt-6 max-w-6xl sm:-mt-16">
+        <div className="rounded-[1.75rem] border border-sand bg-white p-5 shadow-[0_24px_60px_-20px_rgba(61,46,34,0.18)] sm:rounded-[2rem] sm:p-8">
           <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-xl font-medium tracking-tight [font-family:var(--font-display)] sm:text-2xl">

@@ -400,25 +400,58 @@ export async function getAantallen() {
  * iets gebeurd is. We nemen de beschikbare hond met het langste verhaal, want
  * dat is de hond waar de organisatie de meeste moeite in heeft gestoken.
  */
+/** Vanaf hier tellen we een hond niet meer als pup, in maanden. */
+const PUPGRENS_MAANDEN = 12;
+
+/**
+ * De hond die op de homepage wordt uitgelicht.
+ *
+ * De keuze valt op de hond die het langst wacht. Dat is bewust: pups en jonge
+ * honden vinden meestal vanzelf een thuis, terwijl de honden die er al maanden
+ * staan juist niemand meer opvalt. Die plek op de homepage is het enige podium
+ * dat we te vergeven hebben, en dat hoort naar hen te gaan.
+ *
+ * Twee voorwaarden waar een hond aan moet voldoen:
+ *
+ *   Ouder dan een jaar   pups worden hier niet uitgelicht
+ *   Een echt verhaal     een blok van drie regels werkt niet in dit ontwerp
+ *
+ * Over de wachttijd: alleen ACE vermeldt zelf hoelang een hond al ter adoptie
+ * staat. Bij de andere organisaties tellen we vanaf het moment dat wij de hond
+ * voor het eerst zagen. Dat is een ondergrens, en zolang deze site nog jong is
+ * betekent het dat de ACE-honden bovenaan staan. Dat trekt zichzelf recht
+ * naarmate we langer draaien: elke dag wordt onze eigen geschiedenis beter.
+ */
 export async function getVerhaalHond(): Promise<Hond | null> {
   const honden = await getHonden();
 
-  const kandidaten = honden
-    .filter((hond) => hond.status === "beschikbaar" && hond.image && hond.description.length > 300)
-    .sort((a, b) => b.description.length - a.description.length)
-    // Uit de honderd sterkste verhalen kiezen, niet uit alles. Een verhaal van
-    // vijftig tekens werkt niet in dit blok.
-    .slice(0, 100);
+  const kandidaten = honden.filter(
+    (hond) =>
+      hond.status === "beschikbaar" &&
+      hond.image &&
+      hond.description.length > 300 &&
+      hond.ageMonths !== null &&
+      hond.ageMonths > PUPGRENS_MAANDEN
+  );
 
   if (kandidaten.length === 0) return null;
 
-  // Elke dag een andere hond. Wie twee keer langskomt ziet iets nieuws, en de
-  // honden die lang wachten komen zo ook een keer aan de beurt.
-  //
-  // Bewust gekoppeld aan de datum en niet aan toeval: de site wordt bij elke
-  // publicatie opnieuw gebouwd, soms een paar keer per uur. Met een willekeurige
-  // keuze zou de hond op de homepage om de tien minuten wisselen, en dat is
-  // onrustig voor wie zit te lezen.
+  // Langst wachtend eerst. Bij gelijke wachttijd het sterkste verhaal, want
+  // dan is er tenminste iets te lezen.
+  const gesorteerd = kandidaten.sort((a, b) => {
+    const verschil = (b.waitingMonths ?? 0) - (a.waitingMonths ?? 0);
+    return verschil !== 0 ? verschil : b.description.length - a.description.length;
+  });
+
+  // Uit de dertig langst wachtende kiezen, niet alleen de allerlangste. Anders
+  // staat er maandenlang dezelfde hond op de homepage en ziet een terugkerende
+  // bezoeker nooit iets nieuws.
+  const uitgelicht = gesorteerd.slice(0, 30);
+
+  // Elke dag een andere. Bewust gekoppeld aan de datum en niet aan toeval: de
+  // site wordt bij elke publicatie opnieuw gebouwd, soms een paar keer per uur.
+  // Met een willekeurige keuze zou de hond op de homepage om de tien minuten
+  // wisselen, en dat is onrustig voor wie zit te lezen.
   const vandaag = new Date();
   const dagnummer = Math.floor(
     (Date.UTC(vandaag.getFullYear(), vandaag.getMonth(), vandaag.getDate()) -
@@ -426,7 +459,7 @@ export async function getVerhaalHond(): Promise<Hond | null> {
       86400000
   );
 
-  return kandidaten[dagnummer % kandidaten.length];
+  return uitgelicht[dagnummer % uitgelicht.length];
 }
 
 /**

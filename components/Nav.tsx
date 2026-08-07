@@ -33,11 +33,11 @@ export default function Nav() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-cream/90 shadow-[0_1px_0_0_#E7DDCD] backdrop-blur-xl"
+          ? "bg-cream shadow-[0_1px_0_0_#E7DDCD]"
           : "bg-transparent"
       }`}
     >
-      <nav className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-6 lg:px-10">
+      <nav className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-5 sm:h-[76px] sm:px-6 lg:px-10">
         <Link href="/" className="group flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-ink transition-transform duration-300 group-hover:scale-105">
             <BasketMark />
