@@ -336,8 +336,35 @@ function wachttijdInMaanden(bron: HondBron): number | null {
  * en ze zouden het overzicht vervuilen. Honden onder optie blijven wel staan,
  * met een eigen label, want een reservering ketst geregeld af.
  */
+/**
+ * Een getal tussen 0 en 1 dat vastligt per hond en per dag.
+ *
+ * Wordt gebruikt om de volgorde te schudden. Dezelfde hond krijgt op dezelfde
+ * dag altijd hetzelfde getal, dus de volgorde is stabiel binnen een dag maar
+ * anders dan gisteren.
+ */
+function dagelijkseWorp(id: string, dagnummer: number): number {
+  let waarde = dagnummer * 2654435761;
+  for (let i = 0; i < id.length; i++) {
+    waarde = (waarde ^ id.charCodeAt(i)) * 16777619;
+    waarde = waarde >>> 0;
+  }
+  return waarde / 4294967295;
+}
+
+/** Welke dag het is, geteld vanaf 1 januari. */
+function dagVanHetJaar(): number {
+  const nu = new Date();
+  return Math.floor(
+    (Date.UTC(nu.getFullYear(), nu.getMonth(), nu.getDate()) -
+      Date.UTC(nu.getFullYear(), 0, 1)) /
+      86400000
+  );
+}
+
 export async function getHonden(): Promise<Hond[]> {
   const totaal = await haalTotaal();
+  const dag = dagVanHetJaar();
 
   return totaal.honden
     .filter(
@@ -351,7 +378,23 @@ export async function getHonden(): Promise<Hond[]> {
       // Beschikbaar eerst, en honden met een foto boven honden zonder.
       if (a.status !== b.status) return a.status === "beschikbaar" ? -1 : 1;
       if (Boolean(a.image) !== Boolean(b.image)) return a.image ? -1 : 1;
-      return a.name.localeCompare(b.name, "nl");
+
+      // Daarbinnen elke dag een andere volgorde.
+      //
+      // Hiervoor stonden de honden op naam. Dat leek onschuldig, maar bij
+      // negenhonderd honden en vierentwintig per scherm betekende het dat
+      // alles vanaf de letter M praktisch nooit in beeld kwam. Een bestuurslid
+      // van een stichting merkte het op: "moeten we alle hondennamen maar
+      // laten beginnen met een A?"
+      //
+      // Sorteren op wachttijd of op nieuwste zou hetzelfde probleem geven met
+      // een andere groep onderaan. Met een dagelijkse schudbeurt komt elke
+      // hond binnen een paar weken een keer bovenaan.
+      //
+      // Bewust per dag en niet per bezoek: dit gebeurt tijdens het bouwen van
+      // de site, zodat de volgorde niet verspringt terwijl iemand aan het
+      // kijken is of terugkomt van een hondpagina.
+      return dagelijkseWorp(a.id, dag) - dagelijkseWorp(b.id, dag);
     });
 }
 
