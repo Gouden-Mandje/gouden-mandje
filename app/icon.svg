@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!--
+    Het beeldmerk van Gouden Mandje, voor het tabblad van de browser.
+
+    Dezelfde vorm als BasketMark in components/Icons.tsx, maar opnieuw getekend
+    voor klein formaat. In een tabblad is dit icoon zestien pixels breed, en dan
+    valt de lijndikte van 2,2 uit het origineel volledig weg. Hier is die
+    verhoudingsgewijs ruim twee keer zo dik, en zit er wat meer lucht tussen het
+    hengsel en het mandje zodat ze niet aan elkaar plakken.
+
+    De donkere achtergrond hoort erbij. Een goudkleurig lijntje op een wit
+    tabblad is vrijwel onzichtbaar; op dit bruin komt het naar voren, en het is
+    dezelfde combinatie als het logo in de navigatiebalk.
+
+    Kleuren: #3D2E22 is de inktkleur van de site, #C69A5B het goud.
+  -->
+  <rect width="64" height="64" rx="15" fill="#3D2E22"/>
+  <g stroke="#C69A5B" stroke-width="5.5" stroke-linecap="round" fill="none">
+    <path d="M13 32 C 19 50, 45 50, 51 32"/>
+    <path d="M24 29 C 24 16, 40 16, 40 29"/>
+  </g>
+</svg>
