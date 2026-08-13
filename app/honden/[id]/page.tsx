@@ -106,6 +106,25 @@ export default async function HondPagina({
                       <p key={i}>{alinea}</p>
                     ))}
                   </div>
+
+                  {/*
+                    Wie de tekst geschreven heeft.
+
+                    Dit staat er om twee redenen. Voor de lezer is het duidelijk
+                    dat hij het verhaal van de stichting leest en niet dat van
+                    ons; die twee kunnen anders door elkaar lopen omdat het op
+                    ons domein staat.
+
+                    En het legt vast dat wij niets aanpassen. Dat is een keuze
+                    die het hele project doortrekt: verandert de tekst, dan komt
+                    dat doordat de stichting hem heeft aangepast. Zou je hier
+                    ooit toch een woord veranderen, dan klopt deze regel niet
+                    meer en vervalt precies de duidelijkheid waar hij voor
+                    bedoeld is.
+                  */}
+                  <p className="mt-6 border-t border-sand pt-4 text-[13px] italic leading-relaxed text-taupe">
+                    Deze tekst is ongewijzigd overgenomen van {hond.organisation}.
+                  </p>
                 </div>
               )}
             </div>
@@ -162,7 +181,6 @@ export default async function HondPagina({
                   Bekijk {hond.name} bij {hond.organisation}
                   <span aria-hidden="true">↗</span>
                 </a>
-
                 <p className="mt-3 text-center text-[13px] text-taupe">
                   Je gaat naar de website van de stichting
                 </p>
