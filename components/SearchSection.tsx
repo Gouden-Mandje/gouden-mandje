@@ -18,10 +18,20 @@ export default async function SearchSection() {
 
   return (
     <section className="relative z-10 px-4 sm:px-6 lg:px-8">
-      {/* Op mobiel geen overlap: het blok schoof over de knoppen van de Hero
-          en dan was "Voor stichtingen" niet meer aan te tikken. Vanaf tablet is
-          er genoeg ruimte en mag het er weer overheen. */}
-      <Reveal className="mx-auto mt-6 max-w-6xl sm:-mt-16">
+      {/*
+        De overlap met de Hero is bewust: je ziet de bovenkant van dit blok al
+        terwijl je nog in de Hero zit, en dat nodigt uit om door te scrollen.
+        Zou het er helemaal onder staan, dan lijkt de Hero het einde van de
+        pagina.
+
+        Op mobiel geen overlap. Daar schoof het blok over de knoppen van de
+        Hero heen en was "Voor stichtingen" niet meer aan te tikken.
+
+        Vanaf tablet dus wel overlap, maar iets minder diep dan eerst: die was
+        zo strak dat het blok tegen de knoppen aan kwam te liggen op schermen
+        die niet zo hoog zijn.
+      */}
+      <Reveal className="mx-auto mt-6 max-w-6xl sm:-mt-12">
         <div className="rounded-[1.75rem] border border-sand bg-white p-5 shadow-[0_24px_60px_-20px_rgba(61,46,34,0.18)] sm:rounded-[2rem] sm:p-8">
           <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div>
