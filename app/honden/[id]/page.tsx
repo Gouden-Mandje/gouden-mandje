@@ -66,6 +66,69 @@ const GROOTTE_LABELS: Record<string, string> = {
   onbekend: "Onbekend",
 };
 
+/**
+ * Herkent een YouTube-adres in de tekst van een stichting.
+ *
+ * Bewust alleen YouTube. In de verhalen staan op dit moment 253 YouTube-links
+ * en verder niets, dus alles klikbaar maken zou een oplossing zijn voor een
+ * probleem dat er niet is. En er zit een principieel punt aan: een link
+ * klikbaar maken is meer dan hem tonen, je nodigt uit om erop te klikken. Bij
+ * YouTube weet je waar iemand terechtkomt, bij een willekeurig adres niet.
+ *
+ * Komt er ooit een andere videodienst bij, dan hoor je dat vanzelf en kan dit
+ * patroon uitgebreid worden.
+ */
+const YOUTUBE = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)\/[^\s<>")\]]+)/gi;
+
+/**
+ * Zet YouTube-adressen in een alinea om in een leesbare link.
+ *
+ * Het adres zelf tonen zou letterlijker zijn, maar "https://youtube.com/shorts/
+ * lXdpHulptzA" nodigt niemand uit om erop te klikken. De link wijst naar
+ * precies hetzelfde adres als er stond; alleen de weergave verandert.
+ *
+ * Opent in een nieuw tabblad, zodat de bezoeker deze pagina niet kwijtraakt.
+ * Bewust geen ingesloten speler: die laadt zwaar script van Google op elke
+ * hondpagina, plaatst cookies, en houdt mensen weg van het kanaal van de
+ * stichting waar ze meer van hun honden zien.
+ */
+function metVideoLinks(alinea: string, naam: string) {
+  const delen = alinea.split(YOUTUBE);
+  if (delen.length === 1) return alinea;
+
+  return delen.map((deel, i) => {
+    if (!YOUTUBE.test(deel)) {
+      YOUTUBE.lastIndex = 0;
+      return deel;
+    }
+    YOUTUBE.lastIndex = 0;
+
+    return (
+      <a
+        key={i}
+        href={deel}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 font-medium text-ink underline decoration-sand underline-offset-4 transition-colors hover:decoration-ink"
+      >
+        <svg viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" aria-hidden="true">
+          <rect
+            x="2"
+            y="4.5"
+            width="16"
+            height="11"
+            rx="3"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <path d="M8.5 7.8v4.4l4-2.2z" fill="currentColor" />
+        </svg>
+        Bekijk het filmpje van {naam}
+      </a>
+    );
+  });
+}
+
 export default async function HondPagina({
   params,
 }: {
@@ -103,7 +166,7 @@ export default async function HondPagina({
                   </h2>
                   <div className="mt-5 space-y-4 text-[17px] leading-relaxed text-[#6B5847]">
                     {alinea_s.map((alinea, i) => (
-                      <p key={i}>{alinea}</p>
+                      <p key={i}>{metVideoLinks(alinea, hond.name)}</p>
                     ))}
                   </div>
 
