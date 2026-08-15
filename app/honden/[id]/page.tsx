@@ -87,6 +87,10 @@ const YOUTUBE = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)\/[^\s<>")\]]+)
  * lXdpHulptzA" nodigt niemand uit om erop te klikken. De link wijst naar
  * precies hetzelfde adres als er stond; alleen de weergave verandert.
  *
+ * Bewust rustig vormgegeven: in de kleur van de tekst eromheen, alleen
+ * onderstreept en met een klein pictogram. De eerste versie was vetgedrukt en
+ * in de donkere inktkleur, en dat trok de aandacht weg van het verhaal zelf.
+ *
  * Opent in een nieuw tabblad, zodat de bezoeker deze pagina niet kwijtraakt.
  * Bewust geen ingesloten speler: die laadt zwaar script van Google op elke
  * hondpagina, plaatst cookies, en houdt mensen weg van het kanaal van de
@@ -109,19 +113,19 @@ function metVideoLinks(alinea: string, naam: string) {
         href={deel}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 font-medium text-ink underline decoration-sand underline-offset-4 transition-colors hover:decoration-ink"
+        className="inline-flex items-center gap-1.5 underline decoration-sand underline-offset-4 transition-colors hover:text-ink hover:decoration-ink"
       >
-        <svg viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" aria-hidden="true">
+        <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 shrink-0" fill="none" aria-hidden="true">
           <rect
-            x="2"
-            y="4.5"
-            width="16"
-            height="11"
-            rx="3"
+            x="2.5"
+            y="5"
+            width="15"
+            height="10"
+            rx="2.5"
             stroke="currentColor"
-            strokeWidth="1.6"
+            strokeWidth="1.4"
           />
-          <path d="M8.5 7.8v4.4l4-2.2z" fill="currentColor" />
+          <path d="M8.5 8v4l3.5-2z" fill="currentColor" />
         </svg>
         Bekijk het filmpje van {naam}
       </a>
