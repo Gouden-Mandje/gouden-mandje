@@ -51,19 +51,14 @@ export default async function OverOns() {
           </h2>
           <div className="mt-4 space-y-4 text-[17px] leading-relaxed text-[#6B5847]">
             <p>
-              Mijn naam is Pim. Samen met mijn vriendin heb ik een rescuehond uit
-              Griekenland, Louis. Hij is als pup in zijn eentje rondzwervend gevonden
+              Samen met mijn vriendin heb ik een rescuehond uit
+              Griekenland. Hij is als pup in zijn eentje rondzwervend gevonden
               op een industrieterrein.
             </p>
             <p>
               Tijdens die zoektocht liepen we zelf tegen die dertig tabbladen aan. Ik
               werk veel met computers en automatisering, dus wat voor een ander een
               vervelend probleem is, was voor mij vooral een op te lossen probleem.
-            </p>
-            <p>
-              Daarnaast runnen we een webshop in dierenartikelen waarvan een deel van
-              de winst naar rescue-organisaties in het buitenland gaat. Gouden Mandje
-              komt daaruit voort, maar staat er los van.
             </p>
           </div>
 
