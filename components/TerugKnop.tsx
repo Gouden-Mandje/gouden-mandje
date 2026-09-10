@@ -5,7 +5,7 @@ import Link from "next/link";
 import { leesSelectie } from "@/lib/selectie";
 
 /**
- * De knop terug naar het overzicht, bovenaan de hondpagina.
+ * De knop terug naar het overzicht op de hondpagina.
  *
  * Neemt de filters mee die de bezoeker had staan. Zonder dat gooide deze knop
  * je hele zoektocht weg: je had gefilterd op klein en Nederland, klikte op een
@@ -16,6 +16,17 @@ import { leesSelectie } from "@/lib/selectie";
  *
  * Zonder selectie, bijvoorbeeld bij binnenkomst via een gedeelde link, wijst
  * hij gewoon naar het volledige overzicht.
+ *
+ * Hij bestaat in twee vormen, met hetzelfde adres:
+ *
+ *   1. **Bovenaan de pagina**, als tekstlink. Die is er voor wie halverwege
+ *      stopt met lezen en omhoog scrolt.
+ *
+ *   2. **Zwevend linksonder, alleen op mobiel.** Wie het hele verhaal en de
+ *      gegevens leest, staat onderaan een lange pagina en moet anders eerst
+ *      helemaal terug omhoog. Dezelfde pil als de filterknop op het overzicht,
+ *      alleen aan de andere kant, zodat de twee elkaar niet in de weg zitten en
+ *      allebei binnen duimbereik liggen.
  */
 export default function TerugKnop() {
   const [adres, setAdres] = useState("/honden/");
@@ -31,12 +42,32 @@ export default function TerugKnop() {
   }, []);
 
   return (
-    <Link
-      href={adres}
-      className="inline-flex items-center gap-2 text-[15px] font-medium text-taupe transition-colors hover:text-ink"
-    >
-      <span aria-hidden="true">←</span>
-      {gefilterd ? "Terug naar je zoekresultaat" : "Terug naar alle honden"}
-    </Link>
+    <>
+      <Link
+        href={adres}
+        className="inline-flex items-center gap-2 text-[15px] font-medium text-taupe transition-colors hover:text-ink"
+      >
+        <span aria-hidden="true">←</span>
+        {gefilterd ? "Terug naar je zoekresultaat" : "Terug naar alle honden"}
+      </Link>
+
+      {/* Zwevende knop: dezelfde vorm als de filterknop op het overzicht. */}
+      <Link
+        href={adres}
+        aria-label={gefilterd ? "Terug naar je zoekresultaat" : "Terug naar alle honden"}
+        className="fixed bottom-4 left-4 z-40 flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_10px_26px_-8px_rgba(61,46,34,0.65)] sm:hidden"
+      >
+        <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" aria-hidden="true">
+          <path
+            d="M12 4.5L6.5 10l5.5 5.5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        Terug
+      </Link>
+    </>
   );
 }
