@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Hond } from "@/lib/honden";
 import { bewaarSelectie } from "@/lib/selectie";
 import HondCard from "./HondCard";
@@ -110,6 +110,16 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
   const [geladen, setGeladen] = useState(false);
   const [herstelScroll, setHerstelScroll] = useState<number | null>(null);
 
+  /**
+   * De filters zoals ze bij binnenkomst waren.
+   *
+   * Nodig om twee dingen uit elkaar te houden die er in code hetzelfde uitzien:
+   * de bezoeker die zelf een filter aanpast, en de filters die bij het laden uit
+   * de URL worden overgenomen. Alleen het eerste hoort het aantal getoonde
+   * honden terug te zetten naar vierentwintig.
+   */
+  const filtersBijBinnenkomst = useRef<string | null>(null);
+
   // Keuzes uit de URL overnemen. Bewust in een effect en niet met
   // useSearchParams: dat laatste vraagt bij een statische export om een
   // Suspense-grens en levert niets extra's op voor iets dat pas in de browser
@@ -167,16 +177,34 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
   useEffect(() => {
     if (herstelScroll === null || !geladen) return;
 
-    // Twee frames wachten: het eerste zet de kaartjes neer, het tweede geeft de
-    // browser de kans om de hoogte van de pagina te bepalen.
-    const eerste = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: herstelScroll, behavior: "instant" as ScrollBehavior });
-        setHerstelScroll(null);
-      });
-    });
+    let frame = 0;
+    let pogingen = 0;
 
-    return () => cancelAnimationFrame(eerste);
+    // Wachten tot de pagina echt hoog genoeg is. Scrollen naar een positie die
+    // verder ligt dan de pagina lang is, zet je onderaan in de voettekst neer,
+    // en daar kom je niet vanzelf meer weg. Op een telefoon is de kaartjeslijst
+    // niet altijd in één frame getekend, dus proberen we het een aantal frames
+    // achter elkaar.
+    const probeer = () => {
+      const hoogte =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+      if (hoogte < herstelScroll && pogingen < 30) {
+        pogingen += 1;
+        frame = requestAnimationFrame(probeer);
+        return;
+      }
+
+      window.scrollTo({
+        top: Math.min(herstelScroll, Math.max(hoogte, 0)),
+        behavior: "instant" as ScrollBehavior,
+      });
+      setHerstelScroll(null);
+    };
+
+    frame = requestAnimationFrame(probeer);
+
+    return () => cancelAnimationFrame(frame);
   }, [herstelScroll, geladen, zichtbaar]);
 
   const querystring = useCallback(() => {
@@ -299,13 +327,27 @@ export default function HondenFilter({ honden }: { honden: Hond[] }) {
 
   // Bij een nieuwe filterkeuze weer bovenaan beginnen. Anders zie je na het
   // filteren opeens honderd honden staan omdat je eerder had bijgeladen.
-  // Bij de eerste keer laden juist niet, want dan komt het aantal uit de
-  // vorige bezoekbeurt.
+  //
+  // Bij binnenkomst juist niet. Kwam je terug van een hondpagina met een filter
+  // in de URL, dan zag deze code die filters als een wijziging en zette hij het
+  // herstelde aantal meteen weer op vierentwintig. Je stond dan onderaan in de
+  // voettekst en mocht opnieuw gaan bijladen. Vandaar dat de eerste stand van de
+  // filters alleen wordt vastgelegd en verder niets doet.
   useEffect(() => {
     if (!geladen) return;
+
+    const sleutel = [zoek, land, leeftijd, grootte, geslacht].join("|");
+
+    if (filtersBijBinnenkomst.current === null) {
+      filtersBijBinnenkomst.current = sleutel;
+      return;
+    }
+
+    if (filtersBijBinnenkomst.current === sleutel) return;
+
+    filtersBijBinnenkomst.current = sleutel;
     setZichtbaar(STAP);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoek, land, leeftijd, grootte, geslacht]);
+  }, [geladen, zoek, land, leeftijd, grootte, geslacht]);
 
   const getoond = useMemo(
     () => gefilterd.slice(0, zichtbaar),
