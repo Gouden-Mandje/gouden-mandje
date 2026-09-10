@@ -22,11 +22,10 @@ import { leesSelectie } from "@/lib/selectie";
  *   1. **Bovenaan de pagina**, als tekstlink. Die is er voor wie halverwege
  *      stopt met lezen en omhoog scrolt.
  *
- *   2. **Zwevend linksonder, alleen op mobiel.** Wie het hele verhaal en de
- *      gegevens leest, staat onderaan een lange pagina en moet anders eerst
- *      helemaal terug omhoog. Dezelfde pil als de filterknop op het overzicht,
- *      alleen aan de andere kant, zodat de twee elkaar niet in de weg zitten en
- *      allebei binnen duimbereik liggen.
+ *   2. **Zwevend midden onderaan, alleen op mobiel.** Wie het hele verhaal en
+ *      de gegevens leest, staat onderaan een lange pagina en moet anders eerst
+ *      helemaal terug omhoog. Dezelfde pil als de filterknop op het overzicht.
+ *      Midden en niet in een hoek, zodat hij met beide duimen te bereiken is.
  */
 export default function TerugKnop() {
   const [adres, setAdres] = useState("/honden/");
@@ -51,11 +50,13 @@ export default function TerugKnop() {
         {gefilterd ? "Terug naar je zoekresultaat" : "Terug naar alle honden"}
       </Link>
 
-      {/* Zwevende knop: dezelfde vorm als de filterknop op het overzicht. */}
+      {/* Zwevende knop: dezelfde vorm als de filterknop op het overzicht,
+          maar midden onderaan. Links was met één hand niet te doen voor wie
+          zijn telefoon rechts vasthoudt. */}
       <Link
         href={adres}
         aria-label={gefilterd ? "Terug naar je zoekresultaat" : "Terug naar alle honden"}
-        className="fixed bottom-4 left-4 z-40 flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_10px_26px_-8px_rgba(61,46,34,0.65)] sm:hidden"
+        className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_10px_26px_-8px_rgba(61,46,34,0.65)] sm:hidden"
       >
         <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" aria-hidden="true">
           <path
